@@ -1,5 +1,5 @@
-const CACHE = "ridge-city-v1";
-const ASSETS = ["./", "./index.html", "./style.css", "./game.js", "./manifest.json", "./icon.svg"];
+const CACHE = "ridge-city-v2";
+const ASSETS = ["./", "./index.html", "./style.css", "./game.js", "./game.part1.js", "./game.part2.js", "./game.part3.js", "./game.part4.js", "./manifest.json", "./icon.svg"];
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS)).then(() => self.skipWaiting()));
 });

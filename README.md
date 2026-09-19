@@ -4,6 +4,10 @@ Top-down open-world crime game for ages **10+**.
 
 You jack parked cars, knock over shops, and shake Ridge City PD. The toy is the crime loop from early GTA — not a shooter and not a preschool errand sim.
 
+Repo: https://github.com/rivendale/ridge-city
+
+Play: https://rivendale.github.io/ridge-city/
+
 ## Rating notes
 
 - Crime: car theft, shop alarms, getaways, a wanted system
@@ -11,8 +15,6 @@ You jack parked cars, knock over shops, and shake Ridge City PD. The toy is the 
 - Tone: dry, urban, 10+. Not campy helper-hero.
 
 Closest analog for consequence level: Pizza Tycoon / GTA 1 top-down, not a modern M-rated gunfight.
-
-Repo: https://github.com/rivendale/ridge-city
 
 ## Run
 
