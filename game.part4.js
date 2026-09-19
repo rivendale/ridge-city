@@ -32,29 +32,39 @@
       }
       ctx.restore();
     }
-    for (const p of peds) drawPerson(p.x, p.y, p.wander, p.color, p.kind, p.down);
-    if (player.vehicle) {
-      const v = player.vehicle;
-      ctx.save(); ctx.translate(v.x, v.y); ctx.rotate(v.angle);
-      const beam = ctx.createLinearGradient(v.w / 2, 0, v.w / 2 + 70, 0);
-      beam.addColorStop(0, "rgba(255,230,170,0.22)");
-      beam.addColorStop(1, "rgba(255,230,170,0)");
-      ctx.fillStyle = beam;
-      ctx.beginPath();
-      ctx.moveTo(v.w / 2, -5); ctx.lineTo(v.w / 2 + 72, -22);
-      ctx.lineTo(v.w / 2 + 72, 22); ctx.lineTo(v.w / 2, 5);
-      ctx.closePath(); ctx.fill(); ctx.restore();
-      drawCar(v, false);
-    } else {
-      drawPerson(player.x, player.y, player.angle, "#2a3a38", "player", 0);
+    function drawActors() {
+      const pulse = 0.45 + 0.55 * Math.sin(performance.now() / 220);
+      for (const m of markers) {
+        ctx.beginPath();
+        ctx.fillStyle = `rgba(217,122,50,${0.2 + pulse * 0.25})`;
+        ctx.arc(m.x, m.y, 20 + pulse * 8, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.fillStyle = "#d97a32"; ctx.arc(m.x, m.y, 6, 0, Math.PI * 2); ctx.fill();
+      }
+      for (const v of parked) if (!v.taken) drawCar(v, false);
+      for (const c of cops) if (c.alive) drawCar(c, true);
+      for (const p of peds) drawPerson(p.x, p.y, p.wander, p.color, p.kind, p.down);
+      if (player.vehicle) {
+        const v = player.vehicle;
+        ctx.save(); ctx.translate(v.x, v.y); ctx.rotate(v.angle);
+        const beam = ctx.createLinearGradient(v.w / 2, 0, v.w / 2 + 70, 0);
+        beam.addColorStop(0, "rgba(255,230,170,0.22)");
+        beam.addColorStop(1, "rgba(255,230,170,0)");
+        ctx.fillStyle = beam;
+        ctx.beginPath();
+        ctx.moveTo(v.w / 2, -5); ctx.lineTo(v.w / 2 + 72, -22);
+        ctx.lineTo(v.w / 2 + 72, 22); ctx.lineTo(v.w / 2, 5);
+        ctx.closePath(); ctx.fill(); ctx.restore();
+        drawCar(v, false);
+      } else {
+        drawPerson(player.x, player.y, player.angle, "#2a3a38", "player", 0);
+      }
+      if (player.jacking > 0 && !player.vehicle) {
+        ctx.strokeStyle = "#d97a32"; ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(player.x, player.y - 22, 10, -Math.PI / 2, -Math.PI / 2 + (player.jacking / 0.85) * Math.PI * 2);
+        ctx.stroke();
+      }
     }
-    if (player.jacking > 0 && !player.vehicle) {
-      ctx.strokeStyle = "#d97a32"; ctx.lineWidth = 3;
-      ctx.beginPath();
-      ctx.arc(player.x, player.y - 22, 10, -Math.PI / 2, -Math.PI / 2 + (player.jacking / 0.85) * Math.PI * 2);
-      ctx.stroke();
-    }
-  }
   function drawMinimap() {
     const vs = viewSize();
     const mw = 156, mh = 118;
@@ -80,7 +90,7 @@
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     const vs = viewSize();
     ctx.save(); ctx.beginPath(); ctx.rect(0, 0, vs.w, vs.h); ctx.clip();
-    ctx.translate(-camera.x, -camera.y); drawWorld(); ctx.restore();
+    ctx.translate(-camera.x, -camera.y); drawWorld(); drawActors(); ctx.restore();
     drawMinimap();
     if (player.wanted > 0 && gameStarted && !busted) {
       const g = ctx.createRadialGradient(vs.w/2, vs.h/2, vs.w*0.35, vs.w/2, vs.h/2, vs.w*0.72);
