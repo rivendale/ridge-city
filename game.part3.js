@@ -11,6 +11,7 @@
   function update(dt) {
     if (!gameStarted || busted) return;
     for (const s of shops) if (s.cooldown > 0) s.cooldown -= dt;
+    for (let i = skids.length - 1; i >= 0; i--) { skids[i].life -= dt; if (skids[i].life <= 0) skids.splice(i, 1); }
     if (holdJack.on && !player.vehicle) {
       const v = nearestFreeCar(46);
       if (v) { player.jacking += dt; if (player.jacking >= 0.85) enterCar(v); }
@@ -34,6 +35,7 @@
       v.x = player.x; v.y = player.y;
       resolveBuildings(player, 16);
       v.x = player.x; v.y = player.y;
+      if (Math.abs(v.speed) > 2.5) { skids.push({ x: player.x, y: player.y, a: player.angle, life: 1.6 }); if (skids.length > 90) skids.shift(); }
     } else {
       if (len > 0.08) {
         player.x += ix * player.speed; player.y += iy * player.speed;
@@ -131,8 +133,7 @@
   }
   function rr(x, y, w, h, r) {
     const rad = Math.min(r, w / 2, h / 2);
-    ctx.beginPath();
-    ctx.moveTo(x + rad, y);
+    ctx.beginPath(); ctx.moveTo(x + rad, y);
     ctx.arcTo(x + w, y, x + w, y + h, rad);
     ctx.arcTo(x + w, y + h, x, y + h, rad);
     ctx.arcTo(x, y + h, x, y, rad);
@@ -155,7 +156,6 @@
     ctx.fillStyle = c.color;
     rr(-w / 2, -h / 2, w, h, rad); ctx.fill();
     ctx.fillStyle = "rgba(0,0,0,0.22)"; ctx.fillRect(-w / 2, 0.4, w, h / 2 - 0.4);
-    ctx.fillStyle = "rgba(255,255,255,0.08)"; ctx.fillRect(-w / 2 + 1, -h / 2 + 1, w - 2, 2.2);
     ctx.strokeStyle = "rgba(0,0,0,0.5)"; ctx.lineWidth = 1;
     rr(-w / 2, -h / 2, w, h, rad); ctx.stroke();
     const cabinW = type === "van" ? w * 0.46 : type === "sport" ? w * 0.34 : type === "compact" ? w * 0.32 : w * 0.36;
@@ -187,28 +187,62 @@
   function drawWorld() {
     const vs = viewSize();
     const left = camera.x, top = camera.y, right = camera.x + vs.w, bot = camera.y + vs.h;
-    ctx.fillStyle = "#1c2420"; ctx.fillRect(left, top, vs.w, vs.h);
-    ctx.fillStyle = "#163038"; ctx.fillRect(0, WORLD.h - 160, WORLD.w, 180);
+    ctx.fillStyle = "#1a261c"; ctx.fillRect(left, top, vs.w, vs.h);
     ctx.fillStyle = "#243428"; rr(2280, 1680, 480, 320, 8); ctx.fill();
-    ctx.fillStyle = "#3a4148";
-    for (let x = 0; x < WORLD.w; x += 400) ctx.fillRect(x, 0, 96, WORLD.h);
-    for (let y = 0; y < WORLD.h; y += 400) ctx.fillRect(0, y, WORLD.w, 96);
-    ctx.fillRect(0, WORLD.h - 250, WORLD.w, 88);
+    ctx.fillStyle = "#163038"; ctx.fillRect(0, WORLD.h - 170, WORLD.w, 190);
+    ctx.fillStyle = "#1c3c44"; ctx.fillRect(0, WORLD.h - 170, WORLD.w, 10);
+    const ROAD = 96, STEP = 400;
+    for (let x = 0; x < WORLD.w; x += STEP) {
+      ctx.fillStyle = "#4a4240"; ctx.fillRect(x - 8, 0, ROAD + 16, WORLD.h);
+      ctx.fillStyle = "#3a4148"; ctx.fillRect(x, 0, ROAD, WORLD.h);
+    }
+    for (let y = 0; y < WORLD.h; y += STEP) {
+      ctx.fillStyle = "#4a4240"; ctx.fillRect(0, y - 8, WORLD.w, ROAD + 16);
+      ctx.fillStyle = "#3a4148"; ctx.fillRect(0, y, WORLD.w, ROAD);
+    }
+    ctx.fillStyle = "#3a4148"; ctx.fillRect(0, WORLD.h - 250, WORLD.w, 88);
     ctx.strokeStyle = "#c9a227"; ctx.lineWidth = 2; ctx.setLineDash([16, 14]);
-    for (let x = 0; x < WORLD.w; x += 400) { ctx.beginPath(); ctx.moveTo(x + 48, 0); ctx.lineTo(x + 48, WORLD.h); ctx.stroke(); }
-    for (let y = 0; y < WORLD.h; y += 400) { ctx.beginPath(); ctx.moveTo(0, y + 48); ctx.lineTo(WORLD.w, y + 48); ctx.stroke(); }
+    for (let x = 0; x < WORLD.w; x += STEP) { ctx.beginPath(); ctx.moveTo(x + 48, 0); ctx.lineTo(x + 48, WORLD.h); ctx.stroke(); }
+    for (let y = 0; y < WORLD.h; y += STEP) { ctx.beginPath(); ctx.moveTo(0, y + 48); ctx.lineTo(WORLD.w, y + 48); ctx.stroke(); }
     ctx.setLineDash([]);
+    ctx.fillStyle = "#d8dde2";
+    for (let x = 0; x < WORLD.w; x += STEP) for (let y = 0; y < WORLD.h; y += STEP) for (let i = 0; i < 5; i++) {
+      ctx.fillRect(x + 8 + i * 16, y + 2, 10, 6); ctx.fillRect(x + 2, y + 8 + i * 16, 6, 10);
+    }
+    for (const s of skids) {
+      ctx.save(); ctx.translate(s.x, s.y); ctx.rotate(s.a);
+      ctx.globalAlpha = Math.max(0, s.life * 0.35);
+      ctx.fillStyle = "#1a1c1e"; ctx.fillRect(-10, -7, 16, 2); ctx.fillRect(-10, 5, 16, 2);
+      ctx.restore();
+    }
+    for (let x = 0; x < WORLD.w; x += STEP) for (let y = 0; y < WORLD.h; y += STEP) {
+      if (x + 48 < left - 80 || x > right + 80 || y + 48 < top - 80 || y > bot + 80) continue;
+      const g = ctx.createRadialGradient(x + 48, y + 48, 4, x + 48, y + 48, 70);
+      g.addColorStop(0, "rgba(232,196,110,0.16)"); g.addColorStop(1, "rgba(232,196,110,0)");
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x + 48, y + 48, 70, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "#2a2418"; ctx.fillRect(x + 44, y + 20, 5, 28);
+      ctx.fillStyle = "#e8c46e"; ctx.beginPath(); ctx.arc(x + 46.5, y + 20, 4, 0, Math.PI * 2); ctx.fill();
+    }
     for (const b of buildings) {
-      if (b.x + b.w < left - 10 || b.x > right + 10 || b.y + b.h < top - 10 || b.y > bot + 10) continue;
-      ctx.fillStyle = "rgba(0,0,0,0.28)"; ctx.fillRect(b.x + 6, b.y + 8, b.w, b.h);
+      if (b.x + b.w < left - 16 || b.x > right + 16 || b.y + b.h < top - 16 || b.y > bot + 16) continue;
+      ctx.fillStyle = "rgba(0,0,0,0.32)"; ctx.fillRect(b.x + 8, b.y + 10, b.w, b.h);
       ctx.fillStyle = b.color; ctx.fillRect(b.x, b.y, b.w, b.h);
-      ctx.fillStyle = "rgba(0,0,0,0.35)"; ctx.fillRect(b.x, b.y, b.w, 10);
-      ctx.fillStyle = "rgba(220,200,140,0.18)";
+      ctx.fillStyle = "rgba(0,0,0,0.28)"; ctx.fillRect(b.x + b.w - 10, b.y, 10, b.h); ctx.fillRect(b.x, b.y + b.h - 8, b.w, 8);
+      ctx.fillStyle = "rgba(0,0,0,0.4)"; ctx.fillRect(b.x, b.y, b.w, 8);
       const cols = Math.max(2, Math.floor(b.w / 44));
-      const rows = Math.max(1, Math.floor((b.h - 24) / 32));
-      for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) ctx.fillRect(b.x + 12 + c * 40, b.y + 22 + r * 30, 12, 12);
+      const rows = Math.max(1, Math.floor((b.h - 28) / 32));
+      for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+        ctx.fillStyle = ((b.x + c * 13 + r) % 3) ? "rgba(232,196,110,0.35)" : "rgba(20,24,28,0.45)";
+        ctx.fillRect(b.x + 12 + c * 40, b.y + 22 + r * 30, 12, 12);
+      }
+      ctx.fillStyle = "rgba(40,44,48,0.8)"; ctx.fillRect(b.x + b.w * 0.55, b.y + 4, 16, 10);
+      if (b.shop) {
+        ctx.fillStyle = "#c45a2a"; ctx.fillRect(b.x + 16, b.y + b.h - 8, b.w - 32, 4);
+        ctx.fillStyle = "#1a1410"; ctx.fillRect(b.x + b.w / 2 - 8, b.y + b.h - 18, 16, 16);
+      }
       if (b.label) {
         ctx.fillStyle = "#d5dde4"; ctx.font = "700 11px IBM Plex Sans, sans-serif"; ctx.textAlign = "center";
-        ctx.fillText(b.label, b.x + b.w / 2, b.y + b.h - 8);
+        ctx.fillText(b.label, b.x + b.w / 2, b.y + b.h - 10);
       }
     }
+  }
