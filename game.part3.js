@@ -25,10 +25,10 @@
       let steer = 0;
       if (keys["arrowleft"] || keys["a"] || stick.dx < -0.25) steer -= 1;
       if (keys["arrowright"] || keys["d"] || stick.dx > 0.25) steer += 1;
-      if (throttle) v.speed = Math.min(v.max, v.speed + v.acc); else v.speed *= 0.985;
+      if (throttle) v.speed = Math.min(v.max, v.speed + v.acc); else v.speed *= 0.972;
       if (brake) v.speed = Math.max(-v.max * 0.35, v.speed - v.acc * 1.4);
       v.speed *= 0.995;
-      if (Math.abs(v.speed) > 0.15) v.angle += steer * v.turn * Math.sign(v.speed);
+      if (Math.abs(v.speed) > 0.15) v.angle += steer * v.turn * Math.sign(v.speed) * (0.7 + 0.45 * Math.min(1, Math.abs(v.speed) / v.max));
       player.angle = v.angle;
       player.x += Math.cos(v.angle) * v.speed;
       player.y += Math.sin(v.angle) * v.speed;
@@ -86,9 +86,10 @@
       if (seen) { player.unseen = 0; player.heatTimer = Math.max(player.heatTimer, 3); }
       else player.unseen += dt;
       player.heatTimer -= dt;
-      if (player.unseen > 7 && player.heatTimer <= 0 && player.wanted > 0) {
+      if (player.unseen > 6 && player.heatTimer <= 0 && player.wanted > 0) {
         setWanted(player.wanted - 1);
-        if (player.wanted === 0) toast("HEAT LOST");
+        player.unseen = 2.2;
+        toast(player.wanted === 0 ? "HEAT LOST" : ("COOLING  ·  " + player.wanted));
       }
     }
     if (currentJob === "evade" && player.wanted >= 2 && jobProg === 0) {
@@ -106,8 +107,12 @@
       }
     }
     const vs = viewSize();
-    camera.x = player.x - vs.w / 2;
-    camera.y = player.y - vs.h / 2;
+    const look = player.vehicle ? Math.abs(player.vehicle.speed) * 16 : 0;
+    const tx = player.x + Math.cos(player.angle) * look - vs.w / 2;
+    const ty = player.y + Math.sin(player.angle) * look - vs.h / 2;
+    const k = Math.min(1, dt * 5.2);
+    camera.x += (tx - camera.x) * k;
+    camera.y += (ty - camera.y) * k;
     camera.x = Math.max(0, Math.min(WORLD.w - vs.w, camera.x));
     camera.y = Math.max(0, Math.min(WORLD.h - vs.h, camera.y));
     const hint = document.getElementById("interact-hint");
