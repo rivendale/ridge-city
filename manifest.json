@@ -1,0 +1,14 @@
+{
+  "name": "Ridge City",
+  "short_name": "Ridge City",
+  "description": "Top-down open-world crime game for ages 10+. Boost cars, lose cops, get paid. No gore.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#07090c",
+  "theme_color": "#0d1117",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

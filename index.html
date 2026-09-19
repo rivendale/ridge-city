@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#0d1117" />
+  <meta name="description" content="Ridge City — top-down open-world crime game for ages 10+. Boost cars, lose cops, get paid. No gore." />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  <meta name="apple-mobile-web-app-title" content="Ridge City" />
+  <title>Ridge City</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" type="image/svg+xml" href="icon.svg" />
+  <link rel="apple-touch-icon" href="icon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="game-wrap">
+    <canvas id="game" width="960" height="540"></canvas>
+    <div id="hud">
+      <div id="hud-left">
+        <div class="hud-chip" id="cash-chip">$<span id="cash">0</span></div>
+        <div class="hud-chip" id="vehicle-chip">ON FOOT</div>
+        <div id="wanted" aria-label="wanted level"></div>
+      </div>
+      <div id="hud-mission">
+        <div class="mission-label">JOB</div>
+        <div id="mission-text">Find Mack in the alley behind the garage.</div>
+      </div>
+    </div>
+    <div id="toast" class="hidden"></div>
+    <div id="interact-hint" class="hidden"></div>
+    <div id="controls-hint">
+      <span>WASD / arrows move</span>
+      <span>E enter / jack car</span>
+      <span>SPACE job / rob</span>
+      <span>In car: W gas · A/D steer · S brake</span>
+    </div>
+    <div id="mobile-controls">
+      <div id="stick-zone">
+        <div id="stick-base"><div id="stick-knob"></div></div>
+      </div>
+      <div id="action-btns">
+        <button id="btn-e" type="button">JACK</button>
+        <button id="btn-space" type="button">ACT</button>
+      </div>
+    </div>
+  </div>
+  <div id="bust-screen" class="hidden">
+    <div class="bust-card">
+      <div class="bust-kicker">RIDGE CITY PD</div>
+      <h2>BUSTED</h2>
+      <p id="bust-detail">Caught. They kept some of the take.</p>
+      <button id="btn-respawn" type="button">Walk from lockup</button>
+    </div>
+  </div>
+  <div id="start-screen">
+    <div class="start-card">
+      <div class="kicker">AGES 10+ · NO GORE</div>
+      <h1>RIDGE CITY</h1>
+      <p class="tagline">Boost cars. Lose the tail. Get paid.</p>
+      <p class="blurb">
+        Top-down open city in the vein of early GTA. You steal parked cars, knock over shops
+        (alarm, cash bag, run), and shake police. People get knocked down and get back up.
+        Nobody dies on screen. No guns. No blood. Crime is the toy; violence stays abstract.
+      </p>
+      <ul class="feature-list">
+        <li>Jack any parked car — hold JACK / E</li>
+        <li>Wanted stars, cop cars, lockup if they pin you</li>
+        <li>Jobs from Mack: boosts, shop runs, getaways, deliveries</li>
+        <li>Rated for 10+ · Pizza Tycoon / GTA 1-level consequence, not a shooter</li>
+      </ul>
+      <button id="btn-start" type="button">Clock in</button>
+      <p class="fine">Install from the browser for a standalone app.</p>
+    </div>
+  </div>
+  <script src="game.js"></script>
+</body>
+</html>
