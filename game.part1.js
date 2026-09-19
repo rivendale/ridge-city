@@ -64,6 +64,7 @@
   const cops = [];
   const drops = [];
   const markers = [];
+  const skids = [];
   function addBuilding(x, y, w, h, color, label, shop) {
     const b = { x, y, w, h, color, label: label || "", shop: !!shop };
     buildings.push(b);
