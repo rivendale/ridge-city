@@ -1,16 +1,3 @@
-    const pulse = 0.45 + 0.55 * Math.sin(performance.now() / 220);
-    for (const m of markers) {
-      ctx.beginPath();
-      ctx.fillStyle = `rgba(217,122,50,${0.2 + pulse * 0.25})`;
-      ctx.arc(m.x, m.y, 20 + pulse * 8, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.beginPath();
-      ctx.fillStyle = "#d97a32";
-      ctx.arc(m.x, m.y, 6, 0, Math.PI * 2);
-      ctx.fill();
-    }
-    for (const v of parked) if (!v.taken) drawCar(v, false);
-    for (const c of cops) if (c.alive) drawCar(c, true);
     function drawPerson(x, y, angle, color, kind, down) {
       ctx.save();
       ctx.translate(x, y);
@@ -32,7 +19,37 @@
       }
       ctx.restore();
     }
+    function drawProps() {
+      const props = [
+        [2980, 2620, "dump"], [2920, 2540, "tire"], [3040, 2550, "cone"],
+        [580, 1860, "dump"], [3480, 1850, "dump"], [1220, 1340, "cone"],
+        [3800, 2940, "crate"], [430, 2760, "cone"], [2260, 1640, "sign"],
+        [2580, 1260, "dump"], [1760, 2180, "tire"], [700, 700, "cone"]
+      ];
+      for (const [x, y, k] of props) {
+        ctx.save(); ctx.translate(x, y);
+        ctx.fillStyle = "rgba(0,0,0,0.28)"; ctx.fillRect(2, 3, 14, 10);
+        if (k === "dump") {
+          ctx.fillStyle = "#2f4a38"; ctx.fillRect(-8, -6, 16, 12);
+          ctx.fillStyle = "#24382c"; ctx.fillRect(-9, -8, 18, 3);
+        } else if (k === "tire") {
+          ctx.fillStyle = "#1a1c1e"; ctx.beginPath(); ctx.arc(0, 0, 6, 0, Math.PI * 2); ctx.fill();
+          ctx.fillStyle = "#3a3e44"; ctx.beginPath(); ctx.arc(7, 1, 6, 0, Math.PI * 2); ctx.fill();
+        } else if (k === "cone") {
+          ctx.fillStyle = "#d97a32"; ctx.beginPath(); ctx.moveTo(0, -8); ctx.lineTo(5, 5); ctx.lineTo(-5, 5); ctx.fill();
+          ctx.fillStyle = "#e8edf2"; ctx.fillRect(-3, -1, 6, 2);
+        } else if (k === "crate") {
+          ctx.fillStyle = "#6a5344"; ctx.fillRect(-7, -6, 14, 12);
+          ctx.strokeStyle = "rgba(0,0,0,0.35)"; ctx.strokeRect(-7, -6, 14, 12);
+        } else {
+          ctx.fillStyle = "#2a3036"; ctx.fillRect(-2, -18, 4, 22);
+          ctx.fillStyle = "#d97a32"; ctx.fillRect(-16, -28, 32, 14);
+        }
+        ctx.restore();
+      }
+    }
     function drawActors() {
+      drawProps();
       const pulse = 0.45 + 0.55 * Math.sin(performance.now() / 220);
       for (const m of markers) {
         ctx.beginPath();
