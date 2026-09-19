@@ -140,14 +140,47 @@
     ctx.closePath();
   }
   function drawCar(c, siren) {
+    const w = c.w, h = c.h;
+    const type = c.type || (siren ? "cop" : "sedan");
     ctx.save(); ctx.translate(c.x, c.y); ctx.rotate(c.angle);
-    ctx.fillStyle = "rgba(0,0,0,0.28)"; ctx.fillRect(-c.w / 2 + 2, -c.h / 2 + 3, c.w, c.h);
-    ctx.fillStyle = c.color; rr(-c.w / 2, -c.h / 2, c.w, c.h, 3); ctx.fill();
-    ctx.fillStyle = "rgba(180,210,230,0.45)"; ctx.fillRect(-c.w / 2 + 4, -c.h / 2 + 3, c.w * 0.34, c.h - 6);
-    if (siren) {
-      const on = Math.sin(performance.now() / 90) > 0;
-      ctx.fillStyle = on ? "#e23d3d" : "#3d6ae2";
-      ctx.fillRect(-4, -c.h / 2 - 3, 8, 4);
+    ctx.fillStyle = "rgba(0,0,0,0.38)";
+    ctx.beginPath(); ctx.ellipse(1.5, 2.5, w * 0.48, h * 0.46, 0, 0, Math.PI * 2); ctx.fill();
+    const rad = type === "sport" ? 4.2 : type === "van" ? 2.2 : 3;
+    const ww = Math.max(5.5, w * 0.2), wh = 3.4;
+    ctx.fillStyle = "#141618";
+    ctx.fillRect(-w * 0.34, -h / 2 - 1.4, ww, wh);
+    ctx.fillRect(w * 0.12, -h / 2 - 1.4, ww, wh);
+    ctx.fillRect(-w * 0.34, h / 2 - 2, ww, wh);
+    ctx.fillRect(w * 0.12, h / 2 - 2, ww, wh);
+    ctx.fillStyle = c.color;
+    rr(-w / 2, -h / 2, w, h, rad); ctx.fill();
+    ctx.fillStyle = "rgba(0,0,0,0.22)"; ctx.fillRect(-w / 2, 0.4, w, h / 2 - 0.4);
+    ctx.fillStyle = "rgba(255,255,255,0.08)"; ctx.fillRect(-w / 2 + 1, -h / 2 + 1, w - 2, 2.2);
+    ctx.strokeStyle = "rgba(0,0,0,0.5)"; ctx.lineWidth = 1;
+    rr(-w / 2, -h / 2, w, h, rad); ctx.stroke();
+    const cabinW = type === "van" ? w * 0.46 : type === "sport" ? w * 0.34 : type === "compact" ? w * 0.32 : w * 0.36;
+    const cabinX = type === "van" ? -w * 0.04 : type === "sport" ? w * 0.02 : -w * 0.04;
+    ctx.fillStyle = "rgba(48, 68, 86, 0.92)";
+    rr(cabinX - cabinW / 2, -h / 2 + 2.2, cabinW, h - 4.4, 1.8); ctx.fill();
+    ctx.fillStyle = "rgba(210, 228, 240, 0.22)";
+    ctx.fillRect(cabinX - cabinW / 2 + 1, -h / 2 + 2.2, Math.max(3, cabinW * 0.32), h - 4.4);
+    ctx.fillStyle = "#efe4b4";
+    ctx.fillRect(w / 2 - 3.2, -h / 2 + 1.8, 3.2, 3.4);
+    ctx.fillRect(w / 2 - 3.2, h / 2 - 5.2, 3.2, 3.4);
+    ctx.fillStyle = "#b83a32";
+    ctx.fillRect(-w / 2, -h / 2 + 1.8, 2.4, 3.4);
+    ctx.fillRect(-w / 2, h / 2 - 5.2, 2.4, 3.4);
+    if (type === "taxi") {
+      ctx.fillStyle = "#161616"; ctx.fillRect(-5, -h / 2 - 3.8, 10, 4);
+      ctx.fillStyle = "#e8c547"; ctx.fillRect(-4, -h / 2 - 3.2, 8, 2.6);
+    }
+    if (type === "sport") { ctx.fillStyle = "rgba(255,255,255,0.14)"; ctx.fillRect(-w / 2 + 3, -1, w - 8, 2); }
+    if (type === "van") { ctx.fillStyle = "rgba(0,0,0,0.18)"; ctx.fillRect(-w / 2 + 3, -h / 2 + 3, 6, h - 6); }
+    if (siren || type === "cop") {
+      const on = Math.sin(performance.now() / 85) > 0;
+      ctx.fillStyle = "#1a2026"; ctx.fillRect(-7, -h / 2 - 4.4, 14, 4.4);
+      ctx.fillStyle = on ? "#e23d3d" : "#2c4fd6"; ctx.fillRect(-6.4, -h / 2 - 3.8, 6, 3.2);
+      ctx.fillStyle = on ? "#2c4fd6" : "#e23d3d"; ctx.fillRect(0.4, -h / 2 - 3.8, 6, 3.2);
     }
     ctx.restore();
   }
