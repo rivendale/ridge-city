@@ -47,8 +47,10 @@
     on: false,
     start() {
       if (!gameStarted || busted) return;
-      if (player.vehicle) { exitCar(); return; }
-      this.on = true;
+      if (player.vehicle) { exitCar(); toast("BAILED"); return; }
+      const v = nearestFreeCar(64);
+      if (v) enterCar(v);
+      else toast("GET NEXT TO A PARKED CAR  ·  TAP E");
     },
     cancel() { this.on = false; player.jacking = 0; },
   };
@@ -155,8 +157,25 @@
     if (next === "boost1" || next === "evade") markers.push({ x: 2920, y: 2680, kind: "mack" });
     setJobText();
   }
+  function snapRoadX(x) { return Math.round((x - 48) / 400) * 400 + 48; }
+  function snapRoadY(y) { return Math.round((y - 48) / 400) * 400 + 48; }
+  function onVertRoad(x) { return Math.abs((x % 400) - 48) < 42; }
+  function onHorzRoad(y) { return Math.abs((y % 400) - 48) < 42; }
+  function copSteerTarget(c) {
+    const close = dist(c.x, c.y, player.x, player.y) < (difficulty === "beginner" ? 70 : 90);
+    if (close) return { x: player.x, y: player.y };
+    const gx = snapRoadX(player.x), gy = snapRoadY(player.y);
+    const v = onVertRoad(c.x), h = onHorzRoad(c.y);
+    if (!v && !h) {
+      const dx = Math.abs((c.x % 400) - 48), dy = Math.abs((c.y % 400) - 48);
+      return dx <= dy ? { x: snapRoadX(c.x), y: c.y } : { x: c.x, y: snapRoadY(c.y) };
+    }
+    if (v && Math.abs(c.y - gy) > 28) return { x: snapRoadX(c.x), y: gy };
+    if (h && Math.abs(c.x - gx) > 28) return { x: gx, y: snapRoadY(c.y) };
+    return { x: gx, y: gy };
+  }
   function ensureCops() {
-    const need = Math.min(1 + player.wanted, 5);
+    const need = Math.min(1 + player.wanted, difficulty === "beginner" ? 3 : 5);
     while (cops.filter((c) => c.alive).length < need) spawnCop();
   }
   function spawnCop() {
@@ -167,9 +186,10 @@
     if (side === 1) { x = camera.x + Math.random() * vs.w; y = camera.y + vs.h + 80; }
     if (side === 2) { x = camera.x - 80; y = camera.y + Math.random() * vs.h; }
     if (side === 3) { x = camera.x + vs.w + 80; y = camera.y + Math.random() * vs.h; }
-    x = Math.max(40, Math.min(WORLD.w - 40, x));
-    y = Math.max(40, Math.min(WORLD.h - 40, y));
-    cops.push({ x, y, angle: 0, speed: 0, w: 34, h: 17, max: 4.6 + player.wanted * 0.15, acc: 0.2, turn: 0.06, alive: true, color: "#d8dde2" });
+    x = snapRoadX(Math.max(40, Math.min(WORLD.w - 40, x)));
+    y = snapRoadY(Math.max(40, Math.min(WORLD.h - 40, y)));
+    const easy = difficulty === "beginner";
+    cops.push({ x, y, angle: 0, speed: 0, w: 34, h: 17, max: (easy ? 2.15 : 3.05) + player.wanted * (easy ? 0.06 : 0.1), acc: easy ? 0.07 : 0.11, turn: easy ? 0.045 : 0.055, alive: true, color: "#d8dde2", type: "cop" });
   }
   function knockPed(p) {
     if (p.kind === "mack" || p.down > 0) return;
