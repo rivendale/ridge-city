@@ -4,6 +4,16 @@
       if (down > 0) ctx.rotate(1.15); else ctx.rotate(angle || 0);
       ctx.fillStyle = "rgba(0,0,0,0.32)";
       ctx.beginPath(); ctx.ellipse(2, 6, 7, 3.4, 0, 0, Math.PI * 2); ctx.fill();
+      if (kind === "player") {
+        ctx.fillStyle = "rgba(255,255,255,0.85)";
+        ctx.fillRect(-8, -5, 16, 14);
+        ctx.fillStyle = "#d97a32";
+        ctx.fillRect(-7, -4, 14, 12);
+        ctx.fillStyle = "#d9c39a";
+        ctx.beginPath(); ctx.arc(0, -8, 5, 0, Math.PI * 2); ctx.fill();
+        ctx.restore();
+        return;
+      }
       ctx.fillStyle = color; ctx.fillRect(-5, -3, 10, 9);
       ctx.fillStyle = kind === "mack" ? "#d9c39a" : "#d7c4a6";
       ctx.beginPath(); ctx.arc(0, -6, 4.2, 0, Math.PI * 2); ctx.fill();
@@ -89,7 +99,7 @@
     }
     function alley(x, y, w, h) { ctx.fillStyle = "#23262a"; ctx.fillRect(x, y, w, h); }
     function labelAt(x, y, t) {
-      ctx.font = "700 11px IBM Plex Sans, sans-serif";
+      ctx.font = "700 13px IBM Plex Sans, sans-serif";
       ctx.textAlign = "center"; ctx.fillStyle = "#e8edf2"; ctx.fillText(t, x, y);
     }
     function drawLots() {
@@ -175,8 +185,8 @@
       for (const m of markers) {
         ctx.beginPath();
         ctx.fillStyle = `rgba(217,122,50,${0.2 + pulse * 0.25})`;
-        ctx.arc(m.x, m.y, 20 + pulse * 8, 0, Math.PI * 2); ctx.fill();
-        ctx.beginPath(); ctx.fillStyle = "#d97a32"; ctx.arc(m.x, m.y, 6, 0, Math.PI * 2); ctx.fill();
+        ctx.arc(m.x, m.y, 28 + pulse * 10, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.fillStyle = "#d97a32"; ctx.arc(m.x, m.y, 8, 0, Math.PI * 2); ctx.fill();
       }
       for (const v of parked) if (!v.taken) drawCar(v, false);
       for (const c of cops) if (c.alive) drawCar(c, true);
