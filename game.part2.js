@@ -34,6 +34,9 @@
     ent.x = Math.max(18, Math.min(WORLD.w - 18, ent.x));
     ent.y = Math.max(18, Math.min(WORLD.h - 18, ent.y));
   }
+  function inGarageDrop() {
+    return player.x > 2848 && player.x < 3110 && player.y > 2648 && player.y < 2750;
+  }
   function nearestFreeCar(range) {
     let best = null, bestD = range;
     for (const v of parked) {
@@ -75,10 +78,10 @@
     toast("YOU'RE IN  ·  HOLD W");
     setTimeout(() => { if (player.vehicle === v) bumpWanted(Math.max(player.wanted, 1)); }, 1400);
     if (currentJob === "boost1" && jobProg === 0) {
-      jobProg = 1; markers.length = 0; markers.push({ x: 2980, y: 2580, kind: "drop" }); setJobText();
+      jobProg = 1; markers.length = 0; markers.push({ x: 2980, y: 2708, kind: "drop" }); setJobText();
     }
     if (currentJob === "boost2" && v.type === "sport" && jobProg === 0) {
-      jobProg = 1; markers.length = 0; markers.push({ x: 2980, y: 2580, kind: "drop" }); setJobText();
+      jobProg = 1; markers.length = 0; markers.push({ x: 2980, y: 2708, kind: "drop" }); setJobText();
     }
     if (currentJob === "taxi" && v.type === "taxi" && jobProg === 0) {
       jobProg = 1; markers.length = 0; markers.push({ x: 3800, y: 2920, kind: "drop" }); setJobText();
@@ -109,11 +112,11 @@
     bumpWanted(Math.max(player.wanted, 2));
     toast("ALARM  ·  +$" + bag);
     if (currentJob === "shop1" && s.b.label === "SLICE CO." && jobProg === 0) {
-      jobProg = 1; markers.length = 0; markers.push({ x: 2980, y: 2580, kind: "drop" }); setJobText();
+      jobProg = 1; markers.length = 0; markers.push({ x: 2980, y: 2708, kind: "drop" }); setJobText();
     }
     if (currentJob === "shop2" && (s.b.label === "MART" || s.b.label === "POST")) {
       jobProg++; setJobText();
-      if (jobProg >= 2) { markers.length = 0; markers.push({ x: 2980, y: 2580, kind: "drop" }); }
+      if (jobProg >= 2) { markers.length = 0; markers.push({ x: 2980, y: 2708, kind: "drop" }); }
     }
     if (currentJob === "finale" && s.b.label === "ARCADE" && jobProg === 0) {
       jobProg = 1; markers.length = 0; markers.push({ x: 2920, y: 2680, kind: "mack" }); setJobText();
@@ -124,7 +127,7 @@
     if (currentJob === "evade" && jobProg >= 1 && player.wanted === 0) { advanceJob(); return; }
     if (currentJob === "finale" && jobProg >= 1 && player.wanted === 0) { advanceJob(); return; }
     if (["boost1", "boost2", "shop1", "shop2"].includes(currentJob)) {
-      const nearDrop = dist(player.x, player.y, 2980, 2580) < 90;
+      const nearDrop = inGarageDrop();
       if (nearDrop && jobProg >= (currentJob === "shop2" ? 2 : 1)) {
         if (currentJob.startsWith("boost") && !player.vehicle) { toast("BRING THE CAR"); return; }
         advanceJob(); return;
