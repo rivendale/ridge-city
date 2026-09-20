@@ -112,10 +112,10 @@
   let gameStarted = false, busted = false, currentJob = "meet", jobProg = 0, jobNeed = 1, targetCar = null, lastTime = performance.now();
   const jobs = {
     meet: { text: "Find Mack behind the garage on the south side.", pay: 0 },
-    boost1: { text: "Jack any car and bring it to the garage drop.", pay: 180 },
-    shop1: { text: "Hit SLICE CO. Grab the bag. Lose any heat before you bank it at the garage.", pay: 240 },
-    boost2: { text: "Boost a SPORT car. Yellow marker. Drop it at the garage.", pay: 320 },
-    shop2: { text: "Hit the MART, then the POST. Bank both bags at the garage.", pay: 400 },
+    boost1: { text: "Jack any car and park it in the garage lot.", pay: 180 },
+    shop1: { text: "Hit SLICE CO. Grab the bag. Bank it in the garage lot.", pay: 240 },
+    boost2: { text: "Boost a SPORT car. Park it in the garage lot.", pay: 320 },
+    shop2: { text: "Hit the MART, then the POST. Bank both bags in the garage lot.", pay: 400 },
     evade: { text: "Get 2 wanted stars (ram a cruiser or trip an alarm), then go cold before returning to Mack.", pay: 280 },
     taxi: { text: "Jack a TAXI and drop the unmarked envelope at the pier.", pay: 260 },
     finale: { text: "One more shop run: ARCADE, then lose the tail and see Mack.", pay: 500 },
