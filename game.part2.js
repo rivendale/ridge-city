@@ -48,9 +48,9 @@
     start() {
       if (!gameStarted || busted) return;
       if (player.vehicle) { exitCar(); toast("BAILED"); return; }
-      const v = nearestFreeCar(64);
+      const v = nearestFreeCar(80);
       if (v) enterCar(v);
-      else toast("GET NEXT TO A PARKED CAR  ·  TAP E");
+      else toast("WALK ONTO THE CAR  ·  TAP E");
     },
     cancel() { this.on = false; player.jacking = 0; },
   };
@@ -65,14 +65,15 @@
   }
   function enterCar(v) {
     v.taken = true;
+    v.speed = Math.max(v.speed, 1.6);
     player.vehicle = v;
     player.x = v.x; player.y = v.y;
     player.angle = v.angle;
     player.jacking = 0;
     holdJack.on = false;
     document.getElementById("vehicle-chip").textContent = v.name;
-    bumpWanted(Math.max(player.wanted, 1));
-    toast("CAR JACKED  ·  " + v.name);
+    toast("YOU'RE IN  ·  HOLD W");
+    setTimeout(() => { if (player.vehicle === v) bumpWanted(Math.max(player.wanted, 1)); }, 1400);
     if (currentJob === "boost1" && jobProg === 0) {
       jobProg = 1; markers.length = 0; markers.push({ x: 2980, y: 2580, kind: "drop" }); setJobText();
     }
@@ -85,6 +86,10 @@
   }
   function tryAct() {
     if (!gameStarted || busted) return;
+    if (!player.vehicle) {
+      const v = nearestFreeCar(80);
+      if (v) { enterCar(v); return; }
+    }
     const mack = peds.find((p) => p.kind === "mack");
     if (mack && dist(player.x, player.y, mack.x, mack.y) < 48) { talkMack(); return; }
     for (const s of shops) {
