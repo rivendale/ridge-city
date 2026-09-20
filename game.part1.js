@@ -105,7 +105,7 @@
   }
   addPed(2920, 2680, "mack");
   [[900,900],[1600,600],[2000,1600],[2400,2000],[3200,900],[3600,1800],[800,2000],[1200,2600],[2000,2600],[2800,1400],[4000,1400],[600,600],[1800,1000],[3000,2000],[1000,3000],[2200,3000],[3800,2600],[1400,1800],[2600,600],[4200,2200],[400,1800],[3400,3000]].forEach(([x, y]) => addPed(x, y, "civ"));
-  const player = { x: 2780, y: 2720, r: 9, angle: 0, speed: 2.05, vehicle: null, cash: 0, wanted: 0, heatTimer: 0, unseen: 0, jacking: 0 };
+  const player = { x: 2780, y: 2720, r: 11, angle: 0, speed: 3.55, vehicle: null, cash: 0, wanted: 0, heatTimer: 0, unseen: 0, jacking: 0 };
   const camera = { x: 0, y: 0 };
   const lockup = { x: 490, y: 2760 };
   let gameStarted = false, busted = false, currentJob = "meet", jobProg = 0, jobNeed = 1, targetCar = null, lastTime = performance.now();
