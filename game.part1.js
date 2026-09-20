@@ -108,6 +108,7 @@
   const player = { x: 2780, y: 2720, r: 11, angle: 0, speed: 3.55, vehicle: null, cash: 0, wanted: 0, heatTimer: 0, unseen: 0, jacking: 0 };
   const camera = { x: 0, y: 0 };
   const lockup = { x: 490, y: 2760 };
+  let difficulty = "beginner";
   let gameStarted = false, busted = false, currentJob = "meet", jobProg = 0, jobNeed = 1, targetCar = null, lastTime = performance.now();
   const jobs = {
     meet: { text: "Find Mack behind the garage on the south side.", pay: 0 },
