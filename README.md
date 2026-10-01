@@ -18,20 +18,33 @@ Closest analog for consequence level: Pizza Tycoon / GTA 1 top-down, not a moder
 
 ## Run
 
-Open `index.html`, or serve as a PWA:
-
 ```bash
-cd ridge-city
-python3 -m http.server 8080
+npm install
+npm run dev        # http://localhost:5173/ridge-city/
+npm run build      # static site in dist/
 ```
+
+GitHub Pages builds and deploys `dist/` on every push to `main`.
 
 ### Controls
 
 | | Keyboard | Touch |
 | --- | --- | --- |
-| Walk | WASD / arrows | Stick |
-| Drive | W gas, S brake, A/D steer | Stick |
-| Jack / exit | Hold E | Hold JACK |
-| Rob / talk | Space | ACT |
+| Walk / drive | WASD, arrows or numpad | Stick |
+| Jack / bail | E | JACK |
+| Act | Space | ACT |
+| Slide | Shift | |
+| Map | M | |
+| Radio jobs | R | |
+| Pause | Esc | |
 
-Start next to Mack at the south garage. Jobs chain from there. City stays open after the last job.
+Start next to Mack at the garage. Take jobs from him, or go free and take radio gigs.
+
+## Layout
+
+- `src/game/`: the game (engine, world, drawing, audio, saves, UI).
+- `public/game/`: textures and props.
+- `public/classic/`: the original single-file version, still playable at `/ridge-city/classic/`. Tag `classic-2026-09-20` marks it.
+- `public/sw.js`: retires the classic version's cache-first service worker for returning players.
+
+The current game began as a Grok Build export (October 2026) and is maintained here from now on.
