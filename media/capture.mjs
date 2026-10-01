@@ -1,6 +1,6 @@
 // Ridge City media kit v1: gameplay stills from the LIVE site.
 // Run from a folder with playwright-core installed:
-//   node capture.mjs <outdir> [shot ...]      shots: mack car alarm wanted map garage ramp
+//   node capture.mjs <outdir> [shot ...]      shots: mack car alarm wanted garage keyart; alts: map ramp
 // Each shot runs in a fresh browser context. A crafted save sets the time of day; the game's own
 // test hook (window.__ridgeCity) stages position and heat. Every frame is the game's renderer and HUD.
 import { chromium } from "playwright-core";
@@ -44,6 +44,8 @@ async function session(saveBlob, opts = {}) {
     content:
       ".controls-hint{display:none!important}" +
       (opts.hideHint ? ".hint{display:none!important}" : "") +
+      // the FREE / job panel: idle free-roam text that would repeat in every still and cover the road
+      (opts.hideMission ? ".hud-mission{display:none!important}" : "") +
       // key art for the card and banner: the game's world render only, no DOM HUD (the canvas radar is cropped off later)
       (opts.clean ? ".hud,.hud-tools,.toast,.hint,.mobile-controls{display:none!important}" : ""),
   });
@@ -96,7 +98,7 @@ const shots = {
     for (const [tag, x0, y0, ang, steer] of (process.env.RC_CAR === "south"
       ? [["s", 2448, 1300, Math.PI / 2, "KeyA"], ["s2", 2848, 1300, Math.PI / 2, "KeyD"], ["s3", 2048, 1300, Math.PI / 2, "KeyD"]]
       : [["w", 3150, 1648, Math.PI, "KeyA"], ["w2", 3150, 2048, Math.PI, "KeyD"], ["n", 2448, 2300, -Math.PI / 2, "KeyA"]])) {
-      const { ctx, p, errs } = await session(save({ hour: 19.1 }), { hideHint: true });
+      const { ctx, p, errs } = await session(save({ hour: 19.1 }), { hideHint: true, hideMission: true });
       await jackSport(p);
       await rc(p, "warp", x0, y0, ang);
       await p.waitForTimeout(2600); // toast clears, car settles
@@ -117,7 +119,7 @@ const shots = {
   async alarm() {
     const results = [];
     for (const [label, x, y] of [["mart", 3540, 1850], ["arcade", 2685, 1250], ["market", 1610, 2660]]) {
-      const { ctx, p, errs } = await session(save({ hour: 21.0 }), { hideHint: true });
+      const { ctx, p, errs } = await session(save({ hour: 21.0 }), { hideHint: true, hideMission: true });
       await rc(p, "warp", x, y + 40, -Math.PI / 2);
       await down(p, "KeyW"); await p.waitForTimeout(150); await up(p, "KeyW");
       await p.waitForTimeout(500);
@@ -136,7 +138,7 @@ const shots = {
   async wanted() {
     const out = [];
     for (const [tag, x0, y0, ang, hold] of [["w", 2900, 1248, Math.PI, 1400], ["n", 2048, 2150, -Math.PI / 2, 1400], ["w2", 3300, 1648, Math.PI, 1100]]) {
-      const { ctx, p, errs } = await session(save({ hour: 20.4, difficulty: "experienced" }), { hideHint: true });
+      const { ctx, p, errs } = await session(save({ hour: 20.4, difficulty: "experienced" }), { hideHint: true, hideMission: true });
       await jackSport(p);
       await rc(p, "warp", x0, y0, ang);
       await p.waitForTimeout(1800);
@@ -151,7 +153,8 @@ const shots = {
     }
     return out;
   },
-  // 5. The map, mid-game: two cars bought at Mack's (yellow), a courier gig (orange), cruisers out (red)
+  // 5. The map, mid-game: two cars bought at Mack's (yellow), a courier gig (orange), cruisers out (red).
+  // Dropped from the v1 kit (flat grid, colliding labels drawn by the game); kept here as an alt.
   async map() {
     const { ctx, p, errs } = await session(save({ hour: 18, cash: 3200, respect: 4, envelopes: [true, true, false, true, false, true] }));
     await jackSport(p);
@@ -176,11 +179,12 @@ const shots = {
     await burst(p, "05-map", 2, 400);
     await ctx.close(); return errs;
   },
-  // 6. Hidden in Mack's garage bay; the cruisers can only wait at the door
+  // 6. Hidden in Mack's garage bay; the cruisers can only wait at the door. The car is parked, so the
+  // "SLOW DOWN · hide in the garage" hint would contradict the frame (and it covers Mack): hidden.
   async garage() {
     const out = [];
     for (const [tag, y0, wait] of [["a", 2600, 1200], ["b", 2630, 2000]]) {
-      const { ctx, p, errs } = await session(save({ hour: 19.6 }));
+      const { ctx, p, errs } = await session(save({ hour: 19.6 }), { hideHint: true, hideMission: true });
       await jackSport(p);
       await rc(p, "warp", 2980, y0, -Math.PI / 2);
       await p.waitForTimeout(2600);

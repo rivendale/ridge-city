@@ -6,9 +6,15 @@
 Inputs: media/keyart.png (1920x1080, the game's own render at 2x, no DOM HUD; see media/capture.mjs `keyart`)
 and media/icon.svg. Fonts are the game's own (Barlow Condensed, IBM Plex Sans; SIL OFL), fetched from
 Google Fonts into ~/.cache/ridge-city-media/fonts on first run. Needs Pillow and the Inkscape CLI.
+
+The rating line on the card is read from the game's own start card (src/game/RidgeCity.tsx), never typed
+here, and the build refuses if the share descriptions in index.html name a different age. The kicker is
+stamped into og.jpg as a JPEG comment so `media/check.py` can tell when the card predates a rating change.
 """
 import os
+import re
 import subprocess
+import sys
 import urllib.request
 from pathlib import Path
 
@@ -35,11 +41,39 @@ ACCENT = (217, 122, 50)
 
 TITLE = "RIDGE CITY"
 TAGLINE = "Boost cars. Lose the tail. Get paid."
-KICKER = "AGES 10+ · NO GORE"
 URL = "ridgecity.icf.games"
+GAME_UI = ROOT / "src/game/RidgeCity.tsx"
+INDEX = ROOT / "index.html"
 
 # where the action sits in keyart.png (1920x1080): the jacked car, and the two cruisers behind it
 CAR = (1056, 538)
+
+
+def game_kicker():
+    """The rating line exactly as the game's start card shows it, e.g. 'AGES 10+ · NO GORE'."""
+    m = re.search(r'<div className="kicker">\s*(AGES [^<]*?)\s*</div>', GAME_UI.read_text(encoding="utf-8"))
+    if not m:
+        sys.exit(f"compose: no 'AGES ...' kicker on the start card in {GAME_UI.relative_to(ROOT)}")
+    return m.group(1)
+
+
+def rating_of(kicker):
+    """'AGES 10+ · NO GORE' -> '10+'; 'AGES 10-13 · ...' -> '10-13'."""
+    return kicker.split()[1]
+
+
+def rating_problems(kicker):
+    """Every share description in index.html must name the same age as the game; returns what disagrees."""
+    want = f"ages {rating_of(kicker)}".lower()
+    html = INDEX.read_text(encoding="utf-8")
+    probs = []
+    for key in ('name="description"', 'property="og:description"', 'name="twitter:description"'):
+        m = re.search(r"<meta " + re.escape(key) + r' content="([^"]*)"', html)
+        if not m:
+            probs.append(f"index.html: no {key} meta")
+        elif want not in m.group(1).lower():
+            probs.append(f"index.html {key} does not say '{want}' (the game's start card says '{kicker}')")
+    return probs
 
 
 def font(name, size):
@@ -64,8 +98,9 @@ def tracked_width(draw, text, fnt, tracking=0.0):
     return sum(draw.textlength(ch, font=fnt) for ch in text) + tracking * fnt.size * (len(text) - 1)
 
 
-def left_shade(size, solid, fade, alpha=0.94):
-    """Dark panel on the left that fades out to the right, so the title sits on the city, not a box."""
+def left_shade(size, solid, fade, alpha=0.98):
+    """Dark panel on the left that fades out to the right, so the title sits on the city, not a box.
+    0.98, not 0.94: at 0.94 the city's lit windows showed through at lower left on the card and banner."""
     w, h = size
     mask = Image.new("L", (w, 1), 0)
     px = mask.load()
@@ -84,6 +119,18 @@ def left_shade(size, solid, fade, alpha=0.94):
     return layer
 
 
+def title_band(size, box, alpha=0.95, feather=45):
+    """Extra shade behind the title block, so crosswalk paint does not show through the gap between
+    RIDGE and CITY. Feathered so it reads as shading, not a box."""
+    w, h = size
+    m = Image.new("L", (w, h), 0)
+    ImageDraw.Draw(m).rectangle(box, fill=255)
+    m = m.filter(ImageFilter.GaussianBlur(feather))
+    layer = Image.new("RGBA", (w, h), BG + (255,))
+    layer.putalpha(Image.eval(m, lambda v: int(v * alpha)))
+    return layer
+
+
 def vignette(size, strength=0.45):
     w, h = size
     m = Image.new("L", (w, h), 0)
@@ -96,22 +143,25 @@ def vignette(size, strength=0.45):
     return layer
 
 
-def card(art):
+def card(art, kicker):
     W, H = 1200, 630
     car_at = (868, 338)  # car on the right third, headlights pointing at the title
     x0, y0 = CAR[0] - car_at[0], CAR[1] - car_at[1]
     img = art.crop((x0, y0, x0 + W, y0 + H)).convert("RGBA")
     img.alpha_composite(vignette((W, H), 0.5))
-    img.alpha_composite(left_shade((W, H), solid=330, fade=790))
+    img.alpha_composite(left_shade((W, H), solid=360, fade=790))
+    # fades out by x ~650, so the road behind CITY and the car's headlight beam (car at x 868) stay lit
+    img.alpha_composite(title_band((W, H), (0, 150, 560, 520)))
     d = ImageDraw.Draw(img)
     left = 76
     # accent bar, the start card's and toast's orange edge
-    d.rectangle((left - 30, 158, left - 24, 486), fill=ACCENT)
-    tracked(d, (left, 158), KICKER, font("BarlowCondensed-Bold.ttf", 28), ACCENT, 0.18)
+    d.rectangle((left - 30, 150, left - 24, 498), fill=ACCENT)
+    # kicker and URL at 35 px: about 12 px when a phone shows the card 400 px wide
+    tracked(d, (left, 150), kicker, font("BarlowCondensed-Bold.ttf", 35), ACCENT, 0.16)
     tracked(d, (left - 4, 190), TITLE, font("BarlowCondensed-ExtraBold.ttf", 152), FG, 0.05)
     tracked(d, (left, 368), TAGLINE, font("BarlowCondensed-SemiBold.ttf", 48), CASH, 0.03)
     # no star row here: on a share card five stars read as a review score, not the wanted meter
-    d.text((left, 446), URL, font=font("IBMPlexSans-SemiBold.ttf", 28), fill=MUTED)
+    d.text((left, 450), URL, font=font("IBMPlexSans-SemiBold.ttf", 35), fill=MUTED)
     return img.convert("RGB")
 
 
@@ -124,6 +174,8 @@ def banner(art):
     img = art.crop((x0, y0, x0 + cw, y0 + ch)).resize((W, H), Image.LANCZOS).convert("RGBA")
     img.alpha_composite(vignette((W, H), 0.4))
     img.alpha_composite(left_shade((W, H), solid=380, fade=850))
+    # same job as on the card: crosswalk paint showed in the gap between the I and T of CITY (x ~425)
+    img.alpha_composite(title_band((W, H), (0, 30, 480, 230), feather=35))
     d = ImageDraw.Draw(img)
     left = 64
     d.rectangle((left - 24, 52, left - 19, 212), fill=ACCENT)
@@ -145,9 +197,13 @@ def icons():
 
 
 if __name__ == "__main__":
+    kicker = game_kicker()
+    probs = rating_problems(kicker)
+    if probs:
+        sys.exit("compose: refusing to build a card the share text contradicts:\n  " + "\n  ".join(probs))
     art = Image.open(MEDIA / "keyart.png").convert("RGB")
     assert art.size == (1920, 1080), art.size
-    card(art).save(PUBLIC / "og.jpg", quality=88, optimize=True, progressive=True)
+    card(art, kicker).save(PUBLIC / "og.jpg", quality=88, optimize=True, progressive=True, comment=kicker.encode("utf-8"))
     banner(art).save(PUBLIC / "banner.jpg", quality=88, optimize=True, progressive=True)
     icons()
     for f in ("og.jpg", "banner.jpg", "icon-512.png", "icon-180.png"):
