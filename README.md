@@ -6,7 +6,7 @@ You jack parked cars, knock over shops, and shake Ridge City PD. The toy is the 
 
 Repo: https://github.com/rivendale/ridge-city
 
-Play: https://rivendale.github.io/ridge-city/
+Play: https://ridgecity.icf.games/
 
 ## Rating notes
 
@@ -20,11 +20,11 @@ Closest analog for consequence level: Pizza Tycoon / GTA 1 top-down, not a moder
 
 ```bash
 npm install
-npm run dev        # http://localhost:5173/ridge-city/
+npm run dev        # http://localhost:5173/
 npm run build      # static site in dist/
 ```
 
-GitHub Pages builds and deploys `dist/` on every push to `main`.
+GitHub Pages builds and deploys `dist/` on every push to `main`, served at https://ridgecity.icf.games/.
 
 ### Controls
 
@@ -44,7 +44,7 @@ Start next to Mack at the garage. Take jobs from him, or go free and take radio 
 
 - `src/game/`: the game (engine, world, drawing, audio, saves, UI).
 - `public/game/`: textures and props.
-- `public/classic/`: the original single-file version, still playable at `/ridge-city/classic/`. Tag `classic-2026-09-20` marks it.
+- `public/classic/`: the original single-file version, still playable at `/classic/`. Tag `classic-2026-09-20` marks it.
 - `public/sw.js`: retires the classic version's cache-first service worker for returning players.
 
 The current game began as a Grok Build export (October 2026) and is maintained here from now on.
