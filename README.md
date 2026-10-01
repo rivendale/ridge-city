@@ -45,6 +45,7 @@ Start next to Mack at the garage. Take jobs from him, or go free and take radio 
 - `src/game/`: the game (engine, world, drawing, audio, saves, UI).
 - `public/game/`: textures and props.
 - `public/classic/`: the original single-file version, still playable at `/classic/`. Tag `classic-2026-09-20` marks it.
+- `godot/`: the Godot 4 rebuild, starting with the week-one prototype (one block, one car, a foam blaster, 20 breakables). Its web export lives in `public/proto/godot-week1/` and plays at `/proto/godot-week1/`. See `godot/WEEK1.md`.
 - `public/sw.js`: retires the classic version's cache-first service worker for returning players.
 
 The current game began as a Grok Build export (October 2026) and is maintained here from now on.
