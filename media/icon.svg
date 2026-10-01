@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Ridge City app icon: the in-game radar (orange ring, street grid) with a wanted star.
+       The star is the favicon's star, scaled. Full bleed and opaque; everything sits inside the 40% radius maskable safe zone. -->
+  <defs>
+    <clipPath id="disc"><circle cx="256" cy="256" r="190"/></clipPath>
+    <radialGradient id="glow" cx="50%" cy="46%" r="55%">
+      <stop offset="0" stop-color="#1d2630"/>
+      <stop offset="1" stop-color="#121820"/>
+    </radialGradient>
+  </defs>
+  <rect width="512" height="512" fill="#0d1117"/>
+  <circle cx="256" cy="256" r="190" fill="url(#glow)"/>
+  <g clip-path="url(#disc)" fill="#2a333a">
+    <rect x="96" y="40" width="22" height="432"/>
+    <rect x="206" y="40" width="22" height="432"/>
+    <rect x="316" y="40" width="22" height="432"/>
+    <rect x="426" y="40" width="22" height="432"/>
+    <rect x="40" y="110" width="432" height="22"/>
+    <rect x="40" y="220" width="432" height="22"/>
+    <rect x="40" y="330" width="432" height="22"/>
+    <rect x="40" y="440" width="432" height="22"/>
+  </g>
+  <circle cx="256" cy="256" r="190" fill="none" stroke="#d97a32" stroke-width="16"/>
+  <polygon fill="#e23d3d" stroke="#7a1d1d" stroke-width="6" stroke-linejoin="round"
+    points="256.0,138.2 288.6,231.0 386.6,231.7 307.8,288.6 337.9,381.4 256.0,325.8 174.1,381.4 204.2,288.6 125.4,231.7 223.4,231.0"/>
+</svg>
