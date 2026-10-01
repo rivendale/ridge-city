@@ -50,7 +50,7 @@ cd .. && npm ci && npm run build                           # Vite copies public/
 
 Under the brief's 15 MB first-load ceiling if GitHub Pages gzips the wasm. That is not verified for
 `application/wasm` on Pages; check after merge with
-`curl -sI -H 'Accept-Encoding: gzip, br' https://ridgecity.icf.games/proto/godot-week1/index.wasm`.
+`curl -sI -H 'Accept-Encoding: gzip' https://ridgecity.icf.games/proto/godot-week1/index.wasm` (expect `content-encoding: gzip`). GitHub Pages serves gzip, not Brotli (checked on another Pages site, 2026-10-01), so the real first load is about 10 MB; the Brotli column is reference only.
 If it is served raw, the first load is about 40 MB. The brief's "about 5 MB with Brotli" came from the
 Godot 4.3 report; this 4.7.2 template is 7.1 MB with Brotli. Shrinking the engine needs a custom
 template build with unused modules disabled, which is out of week-one scope.
