@@ -1,16 +1,18 @@
 #!/usr/bin/env python3
 """Ridge City media kit v1: share card, banner and icons from the captured key art.
 
-    python3 media/compose.py            # writes public/og.jpg, public/banner.jpg, public/icon-512.png, public/icon-180.png
+    python3 media/compose.py            # writes public/og.jpg, public/banner.jpg, public/icon-{512,192,180}.png
 
 Inputs: media/keyart.png (1920x1080, the game's own render at 2x, no DOM HUD; see media/capture.mjs `keyart`)
 and media/icon.svg. Fonts are the game's own (Barlow Condensed, IBM Plex Sans; SIL OFL), fetched from
-Google Fonts into ~/.cache/ridge-city-media/fonts on first run. Needs Pillow and the Inkscape CLI.
+Google Fonts into ~/.cache/ridge-city-media/fonts on first run and checked against FONT_SHA256, so a rebuild
+uses the same bytes or refuses. Needs Pillow and the Inkscape CLI.
 
 The rating line on the card is read from the game's own start card (src/game/RidgeCity.tsx), never typed
 here, and the build refuses if the share descriptions in index.html name a different age. The kicker is
 stamped into og.jpg as a JPEG comment so `media/check.py` can tell when the card predates a rating change.
 """
+import hashlib
 import os
 import re
 import subprocess
@@ -30,6 +32,15 @@ FONT_URLS = {
     "BarlowCondensed-Bold.ttf": "https://fonts.gstatic.com/s/barlowcondensed/v13/HTxwL3I-JCGChYJ8VI-L6OO_au7B46r2_3E.ttf",
     "BarlowCondensed-SemiBold.ttf": "https://fonts.gstatic.com/s/barlowcondensed/v13/HTxwL3I-JCGChYJ8VI-L6OO_au7B4873_3E.ttf",
     "IBMPlexSans-SemiBold.ttf": "https://fonts.gstatic.com/s/ibmplexsans/v23/zYXGKVElMYYaJe8bpLHnCwDKr932-G7dytD-Dmu1swZSAXcomDVmadSDNF5zAA.ttf",
+}
+
+# sha256 of each file above, fetched 2026-10-01; rebuilding og.jpg and banner.jpg with these four
+# reproduced the committed files byte for byte. A changed download is refused, not used.
+FONT_SHA256 = {
+    "BarlowCondensed-ExtraBold.ttf": "73bc9e17231e9073780d3c81574c7253cecd5645c93544df1a935054b39a364f",
+    "BarlowCondensed-Bold.ttf": "7dde307fa887fc65ff5830cfada77a7decc5dae8d3c816c9d39ba3f1af1c4ed7",
+    "BarlowCondensed-SemiBold.ttf": "0d85af813fc3ed87db0c6265515689b2eef5cbaf7aab17922528dfc95a2cd73f",
+    "IBMPlexSans-SemiBold.ttf": "5311c66fd6d04ae45671236f7eae667b671c06c1dc7e88d52c206e5fadd0fb21",
 }
 
 # the game's tokens (src/styles.css)
@@ -76,11 +87,20 @@ def rating_problems(kicker):
     return probs
 
 
+def sha256(path):
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
 def font(name, size):
     path = FONTS / name
-    if not path.exists():
+    if not path.exists() or sha256(path) != FONT_SHA256[name]:  # a stale or damaged cache is fetched again
         FONTS.mkdir(parents=True, exist_ok=True)
         urllib.request.urlretrieve(FONT_URLS[name], path)
+        got = sha256(path)
+        if got != FONT_SHA256[name]:
+            path.unlink()
+            sys.exit(f"compose: {name} from {FONT_URLS[name]} has sha256 {got}, not the pinned "
+                     f"{FONT_SHA256[name]}; refusing to build with a different font")
     return ImageFont.truetype(str(path), size)
 
 
@@ -186,7 +206,7 @@ def banner(art):
 
 def icons():
     svg = MEDIA / "icon.svg"
-    for size in (512, 180):
+    for size in (512, 192, 180):  # 192 and 512 for Chrome's install prompt, 180 for iOS
         out = PUBLIC / f"icon-{size}.png"
         subprocess.run(
             ["inkscape", str(svg), "--export-type=png", f"--export-filename={out}", f"--export-width={size}", f"--export-height={size}", "--export-background-opacity=1"],
@@ -206,6 +226,6 @@ if __name__ == "__main__":
     card(art, kicker).save(PUBLIC / "og.jpg", quality=88, optimize=True, progressive=True, comment=kicker.encode("utf-8"))
     banner(art).save(PUBLIC / "banner.jpg", quality=88, optimize=True, progressive=True)
     icons()
-    for f in ("og.jpg", "banner.jpg", "icon-512.png", "icon-180.png"):
+    for f in ("og.jpg", "banner.jpg", "icon-512.png", "icon-192.png", "icon-180.png"):
         im = Image.open(PUBLIC / f)
         print(f, im.size, im.mode, (PUBLIC / f).stat().st_size // 1024, "KB")
