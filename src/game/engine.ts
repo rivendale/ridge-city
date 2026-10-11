@@ -96,7 +96,7 @@ const POINT_STEER_FULL_LOCK = 0.55;
 /** Heading error (radians, ~126°) beyond which the target counts as behind the car. */
 const POINT_STEER_BEHIND = 2.2;
 
-/** An angle folded into (-π, π]. */
+/** An angle folded into [-π, π). */
 function wrapAngle(a: number): number {
   return a - 2 * Math.PI * Math.floor((a + Math.PI) / (2 * Math.PI));
 }
@@ -1311,16 +1311,24 @@ export function createGame(
       // wanted: the car turns toward it in proportion to the error, so it straightens
       // out on arrival instead of overshooting. Keys and gamepads keep tank steering.
       const stickMag = Math.hypot(stick.dx, stick.dy);
-      const pointSteer = injectSteer == null && !injectKeys && stick.active && stickMag > POINT_STEER_DEADZONE;
+      const touchStick = injectSteer == null && !injectKeys && stick.active;
       if (injectSteer != null) steer = injectSteer;
-      else if (pointSteer) {
+      else if (touchStick && stickMag <= POINT_STEER_DEADZONE) {
+        // A resting thumb: no throttle, no lock. (Left to the tank branch, this band
+        // still steered at full lock from the stick's x.)
+        throttle = 0;
+        brake = 0;
+      } else if (touchStick) {
         const diff = wrapAngle(Math.atan2(stick.dy, stick.dx) - v.angle);
-        steer = clamp(diff / POINT_STEER_FULL_LOCK, -1, 1);
-        // Pointing well behind: keep enough speed to turn (a car below 8 cannot turn),
-        // brake only when fast, so a U-turn is a tight arc rather than a stall.
+        // Pointing well behind the car: brake, which slows and then reverses, and swing
+        // the nose toward the target while backing (a three-point turn), so a car nosed
+        // into a wall can always back out. In front: drive toward it.
         const behind = Math.abs(diff) > POINT_STEER_BEHIND;
-        throttle = !behind || Math.abs(v.speed) < 60 ? 1 : 0;
-        brake = behind && v.speed >= 60 ? 1 : 0;
+        throttle = behind ? 0 : 1;
+        brake = behind ? 1 : 0;
+        // The turn below multiplies by the sign of the speed, so reversing flips the
+        // lock; flip it back so the nose always swings toward the target.
+        steer = clamp(diff / POINT_STEER_FULL_LOCK, -1, 1) * (v.speed < 0 ? -1 : 1);
       } else {
         if (ix < -0.22) steer -= 1;
         if (ix > 0.22) steer += 1;
