@@ -89,6 +89,18 @@ const NUMPAD_MOVE = new Set([
 function dist(ax: number, ay: number, bx: number, by: number) {
   return Math.hypot(ax - bx, ay - by);
 }
+/** Stick push below this is a resting thumb, not a direction. */
+const POINT_STEER_DEADZONE = 0.3;
+/** Heading error (radians) at which point-to-steer uses full lock; less error, less lock. */
+const POINT_STEER_FULL_LOCK = 0.55;
+/** Heading error (radians, ~126°) beyond which the target counts as behind the car. */
+const POINT_STEER_BEHIND = 2.2;
+
+/** An angle folded into [-π, π). */
+function wrapAngle(a: number): number {
+  return a - 2 * Math.PI * Math.floor((a + Math.PI) / (2 * Math.PI));
+}
+
 function clamp(n: number, a: number, b: number) {
   return Math.max(a, Math.min(b, n));
 }
@@ -1178,8 +1190,6 @@ export function createGame(
     if (anyHeld(MOVE_UP) || keysHas("Numpad7") || keysHas("Numpad9")) iy -= 1;
     if (anyHeld(MOVE_DOWN) || keysHas("Numpad1") || keysHas("Numpad3")) iy += 1;
     if (!injectKeys) {
-      ix += stick.dx;
-      iy += stick.dy;
       const pads = navigator.getGamepads?.() ?? [];
       for (const p of pads) {
         if (!p) continue;
@@ -1197,12 +1207,22 @@ export function createGame(
         if (p.buttons[15]?.pressed) ix += 1;
       }
     }
+    // Everything but the touch stick, so the car can tell whether keys or a pad are
+    // driving: they take precedence over a thumb resting on the stick.
+    const other = Math.hypot(ix, iy);
+    const os = other > 1 ? 1 / other : 1;
+    const kx = ix * os;
+    const ky = iy * os;
+    if (!injectKeys) {
+      ix += stick.dx;
+      iy += stick.dy;
+    }
     const len = Math.hypot(ix, iy);
     if (len > 1) {
       ix /= len;
       iy /= len;
     }
-    return { ix, iy, len: Math.min(1, len) };
+    return { ix, iy, len: Math.min(1, len), other, kx, ky };
   }
 
   function just(code: string) {
@@ -1286,16 +1306,45 @@ export function createGame(
       return;
     }
 
-    const { ix, iy, len } = inputVec();
+    const { ix, iy, len, other, kx, ky } = inputVec();
     if (player.vehicle) {
       const v = player.vehicle;
-      const throttle = iy < -0.22 ? 1 : 0;
-      const brake = iy > 0.32 ? 1 : 0;
+      // Keys or a gamepad in use drive the car alone: a thumb resting on the touch
+      // stick must neither cancel them nor add lock to them.
+      const keysDrive = other >= 0.22;
+      const cx = keysDrive ? kx : ix;
+      const cy = keysDrive ? ky : iy;
+      let throttle = cy < -0.22 ? 1 : 0;
+      let brake = cy > 0.32 ? 1 : 0;
       let steer = 0;
+      // Touch stick: POINT-TO-STEER. On a phone the thumb pushes toward where the car
+      // should go. Read as tank controls (sideways = full lock, up = throttle), pushing
+      // up-and-right meant throttle plus a constant right turn, and the car drove in
+      // circles (phone playtest, 2026-10-10). The stick's direction is now the heading
+      // wanted: the car turns toward it in proportion to the error, so it straightens
+      // out on arrival instead of overshooting. Keys and gamepads keep tank steering.
+      const stickMag = Math.hypot(stick.dx, stick.dy);
+      const touchStick = injectSteer == null && !injectKeys && stick.active && !keysDrive;
       if (injectSteer != null) steer = injectSteer;
-      else {
-        if (ix < -0.22) steer -= 1;
-        if (ix > 0.22) steer += 1;
+      else if (touchStick && stickMag <= POINT_STEER_DEADZONE) {
+        // A resting thumb: no throttle, no lock. (Left to the tank branch, this band
+        // still steered at full lock from the stick's x.)
+        throttle = 0;
+        brake = 0;
+      } else if (touchStick) {
+        const diff = wrapAngle(Math.atan2(stick.dy, stick.dx) - v.angle);
+        // Pointing well behind the car: brake, which slows and then reverses, and swing
+        // the nose toward the target while backing (a three-point turn), so a car nosed
+        // into a wall can always back out. In front: drive toward it.
+        const behind = Math.abs(diff) > POINT_STEER_BEHIND;
+        throttle = behind ? 0 : 1;
+        brake = behind ? 1 : 0;
+        // The turn below multiplies by the sign of the speed, so reversing flips the
+        // lock; flip it back so the nose always swings toward the target.
+        steer = clamp(diff / POINT_STEER_FULL_LOCK, -1, 1) * (v.speed < 0 ? -1 : 1);
+      } else {
+        if (cx < -0.22) steer -= 1;
+        if (cx > 0.22) steer += 1;
       }
       const handbrake = keysHas("ShiftLeft") || keysHas("ShiftRight");
       const feel = carFeel(v.type);
