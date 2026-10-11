@@ -1190,8 +1190,6 @@ export function createGame(
     if (anyHeld(MOVE_UP) || keysHas("Numpad7") || keysHas("Numpad9")) iy -= 1;
     if (anyHeld(MOVE_DOWN) || keysHas("Numpad1") || keysHas("Numpad3")) iy += 1;
     if (!injectKeys) {
-      ix += stick.dx;
-      iy += stick.dy;
       const pads = navigator.getGamepads?.() ?? [];
       for (const p of pads) {
         if (!p) continue;
@@ -1209,12 +1207,19 @@ export function createGame(
         if (p.buttons[15]?.pressed) ix += 1;
       }
     }
+    // Everything but the touch stick, so the car can tell whether keys or a pad are
+    // driving: they take precedence over a thumb resting on the stick.
+    const other = Math.hypot(ix, iy);
+    if (!injectKeys) {
+      ix += stick.dx;
+      iy += stick.dy;
+    }
     const len = Math.hypot(ix, iy);
     if (len > 1) {
       ix /= len;
       iy /= len;
     }
-    return { ix, iy, len: Math.min(1, len) };
+    return { ix, iy, len: Math.min(1, len), other };
   }
 
   function just(code: string) {
@@ -1298,7 +1303,7 @@ export function createGame(
       return;
     }
 
-    const { ix, iy, len } = inputVec();
+    const { ix, iy, len, other } = inputVec();
     if (player.vehicle) {
       const v = player.vehicle;
       let throttle = iy < -0.22 ? 1 : 0;
@@ -1311,7 +1316,9 @@ export function createGame(
       // wanted: the car turns toward it in proportion to the error, so it straightens
       // out on arrival instead of overshooting. Keys and gamepads keep tank steering.
       const stickMag = Math.hypot(stick.dx, stick.dy);
-      const touchStick = injectSteer == null && !injectKeys && stick.active;
+      // Keys or a gamepad in use win over the stick (a thumb may rest on it while a
+      // controller drives); then the existing tank steering applies.
+      const touchStick = injectSteer == null && !injectKeys && stick.active && other < 0.22;
       if (injectSteer != null) steer = injectSteer;
       else if (touchStick && stickMag <= POINT_STEER_DEADZONE) {
         // A resting thumb: no throttle, no lock. (Left to the tank branch, this band
