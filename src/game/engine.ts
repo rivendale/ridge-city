@@ -1210,6 +1210,9 @@ export function createGame(
     // Everything but the touch stick, so the car can tell whether keys or a pad are
     // driving: they take precedence over a thumb resting on the stick.
     const other = Math.hypot(ix, iy);
+    const os = other > 1 ? 1 / other : 1;
+    const kx = ix * os;
+    const ky = iy * os;
     if (!injectKeys) {
       ix += stick.dx;
       iy += stick.dy;
@@ -1219,7 +1222,7 @@ export function createGame(
       ix /= len;
       iy /= len;
     }
-    return { ix, iy, len: Math.min(1, len), other };
+    return { ix, iy, len: Math.min(1, len), other, kx, ky };
   }
 
   function just(code: string) {
@@ -1303,11 +1306,16 @@ export function createGame(
       return;
     }
 
-    const { ix, iy, len, other } = inputVec();
+    const { ix, iy, len, other, kx, ky } = inputVec();
     if (player.vehicle) {
       const v = player.vehicle;
-      let throttle = iy < -0.22 ? 1 : 0;
-      let brake = iy > 0.32 ? 1 : 0;
+      // Keys or a gamepad in use drive the car alone: a thumb resting on the touch
+      // stick must neither cancel them nor add lock to them.
+      const keysDrive = other >= 0.22;
+      const cx = keysDrive ? kx : ix;
+      const cy = keysDrive ? ky : iy;
+      let throttle = cy < -0.22 ? 1 : 0;
+      let brake = cy > 0.32 ? 1 : 0;
       let steer = 0;
       // Touch stick: POINT-TO-STEER. On a phone the thumb pushes toward where the car
       // should go. Read as tank controls (sideways = full lock, up = throttle), pushing
@@ -1316,9 +1324,7 @@ export function createGame(
       // wanted: the car turns toward it in proportion to the error, so it straightens
       // out on arrival instead of overshooting. Keys and gamepads keep tank steering.
       const stickMag = Math.hypot(stick.dx, stick.dy);
-      // Keys or a gamepad in use win over the stick (a thumb may rest on it while a
-      // controller drives); then the existing tank steering applies.
-      const touchStick = injectSteer == null && !injectKeys && stick.active && other < 0.22;
+      const touchStick = injectSteer == null && !injectKeys && stick.active && !keysDrive;
       if (injectSteer != null) steer = injectSteer;
       else if (touchStick && stickMag <= POINT_STEER_DEADZONE) {
         // A resting thumb: no throttle, no lock. (Left to the tank branch, this band
@@ -1337,8 +1343,8 @@ export function createGame(
         // lock; flip it back so the nose always swings toward the target.
         steer = clamp(diff / POINT_STEER_FULL_LOCK, -1, 1) * (v.speed < 0 ? -1 : 1);
       } else {
-        if (ix < -0.22) steer -= 1;
-        if (ix > 0.22) steer += 1;
+        if (cx < -0.22) steer -= 1;
+        if (cx > 0.22) steer += 1;
       }
       const handbrake = keysHas("ShiftLeft") || keysHas("ShiftRight");
       const feel = carFeel(v.type);
