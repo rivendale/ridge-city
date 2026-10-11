@@ -89,6 +89,18 @@ const NUMPAD_MOVE = new Set([
 function dist(ax: number, ay: number, bx: number, by: number) {
   return Math.hypot(ax - bx, ay - by);
 }
+/** Stick push below this is a resting thumb, not a direction. */
+const POINT_STEER_DEADZONE = 0.3;
+/** Heading error (radians) at which point-to-steer uses full lock; less error, less lock. */
+const POINT_STEER_FULL_LOCK = 0.55;
+/** Heading error (radians, ~126°) beyond which the target counts as behind the car. */
+const POINT_STEER_BEHIND = 2.2;
+
+/** An angle folded into (-π, π]. */
+function wrapAngle(a: number): number {
+  return a - 2 * Math.PI * Math.floor((a + Math.PI) / (2 * Math.PI));
+}
+
 function clamp(n: number, a: number, b: number) {
   return Math.max(a, Math.min(b, n));
 }
@@ -1289,11 +1301,27 @@ export function createGame(
     const { ix, iy, len } = inputVec();
     if (player.vehicle) {
       const v = player.vehicle;
-      const throttle = iy < -0.22 ? 1 : 0;
-      const brake = iy > 0.32 ? 1 : 0;
+      let throttle = iy < -0.22 ? 1 : 0;
+      let brake = iy > 0.32 ? 1 : 0;
       let steer = 0;
+      // Touch stick: POINT-TO-STEER. On a phone the thumb pushes toward where the car
+      // should go. Read as tank controls (sideways = full lock, up = throttle), pushing
+      // up-and-right meant throttle plus a constant right turn, and the car drove in
+      // circles (phone playtest, 2026-10-10). The stick's direction is now the heading
+      // wanted: the car turns toward it in proportion to the error, so it straightens
+      // out on arrival instead of overshooting. Keys and gamepads keep tank steering.
+      const stickMag = Math.hypot(stick.dx, stick.dy);
+      const pointSteer = injectSteer == null && !injectKeys && stick.active && stickMag > POINT_STEER_DEADZONE;
       if (injectSteer != null) steer = injectSteer;
-      else {
+      else if (pointSteer) {
+        const diff = wrapAngle(Math.atan2(stick.dy, stick.dx) - v.angle);
+        steer = clamp(diff / POINT_STEER_FULL_LOCK, -1, 1);
+        // Pointing well behind: keep enough speed to turn (a car below 8 cannot turn),
+        // brake only when fast, so a U-turn is a tight arc rather than a stall.
+        const behind = Math.abs(diff) > POINT_STEER_BEHIND;
+        throttle = !behind || Math.abs(v.speed) < 60 ? 1 : 0;
+        brake = behind && v.speed >= 60 ? 1 : 0;
+      } else {
         if (ix < -0.22) steer -= 1;
         if (ix > 0.22) steer += 1;
       }
