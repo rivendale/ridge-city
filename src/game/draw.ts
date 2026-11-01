@@ -205,10 +205,23 @@ function drawPerson(
     ctx.fillStyle = "#d97a32";
     ctx.fillRect(-5, -2, 10, 6);
     ctx.restore();
-    ctx.font = "700 10px IBM Plex Sans, sans-serif";
+    // Bright ground ring so Mack reads at a glance on dark streets.
+    ctx.beginPath();
+    ctx.strokeStyle = "rgba(217,122,50,0.95)";
+    ctx.lineWidth = 3;
+    ctx.arc(x, y, 22, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.fillStyle = "rgba(217,122,50,0.22)";
+    ctx.arc(x, y, 22, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.font = "700 12px IBM Plex Sans, sans-serif";
     ctx.textAlign = "center";
+    ctx.strokeStyle = "rgba(7,9,12,0.85)";
+    ctx.lineWidth = 3;
+    ctx.strokeText("MACK", x, y + 28);
     ctx.fillStyle = "#e8edf2";
-    ctx.fillText("MACK", x, y + 16);
+    ctx.fillText("MACK", x, y + 28);
     return;
   }
   ctx.restore();

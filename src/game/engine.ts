@@ -17,6 +17,7 @@ import {
   CHOP_SHOP,
   DOCK_RAMP,
   GARAGE_DROP,
+  GUIDED_STORY_JOBS,
   JOBS,
   JOB_ORDER,
   LOCKUP,
@@ -110,6 +111,13 @@ function circleRect(cx: number, cy: number, r: number, rx: number, ry: number, r
   return Math.hypot(cx - nx, cy - ny) < r;
 }
 
+function guidedToast(id: JobId): string | null {
+  if (id === "meet") return "GUIDED 1/3  ·  Follow the arrow to Mack";
+  if (id === "boost1") return "GUIDED 2/3  ·  Jack any car, dump it at the garage";
+  if (id === "shop1") return "GUIDED 3/3  ·  Hit SLICE CO., bank the bag";
+  return null;
+}
+
 export function createGame(
   canvas: HTMLCanvasElement,
   onHud: (h: HudSnapshot) => void,
@@ -193,9 +201,16 @@ export function createGame(
   let edgeRadio = false;
   let edgeHorn = false;
 
-  function viewSize() {
+  /** CSS-pixel screen size (HUD / minimap). */
+  function screenSize() {
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     return { w: canvas.width / dpr, h: canvas.height / dpr };
+  }
+  /** World window size. On foot we zoom in so the player and Mack are readable. */
+  function viewSize() {
+    const s = screenSize();
+    const zoom = player.vehicle ? 1 : 1.55;
+    return { w: s.w / zoom, h: s.h / zoom, zoom };
   }
 
   function resize() {
@@ -705,10 +720,11 @@ export function createGame(
     }
     if (j.pay) {
       addCash(j.pay);
-      toast("JOB DONE  ·  +$" + j.pay);
+      const guided = GUIDED_STORY_JOBS.includes(currentJob);
+      toast((guided ? "GUIDED PAY  ·  +$" : "JOB DONE  ·  +$") + j.pay, guided ? 2800 : 2000);
       sfx("job");
       player.respect += 1;
-    } else toast("MACK  ·  CITY'S YOURS");
+    } else toast(currentJob === "meet" ? "GUIDED 1/3 DONE  ·  SEE MACK FOR JOB 2" : "MACK  ·  CITY'S YOURS", 2800);
     const idx = JOB_ORDER.indexOf(currentJob);
     const next = JOB_ORDER[idx + 1];
     clockOff();
@@ -734,7 +750,8 @@ export function createGame(
     onClock = true;
     radioOffer = null;
     armStory(currentJob);
-    toast(JOBS[currentJob].short.toUpperCase());
+    const gToast = guidedToast(currentJob);
+    toast(gToast ?? JOBS[currentJob].short.toUpperCase(), gToast ? 3200 : 2000);
     sfx("job");
   }
 
@@ -1845,11 +1862,13 @@ export function createGame(
   function drawFrame(now: number) {
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const hud = screenSize();
     const vs = viewSize();
     ctx.save();
     ctx.beginPath();
-    ctx.rect(0, 0, vs.w, vs.h);
+    ctx.rect(0, 0, hud.w, hud.h);
     ctx.clip();
+    ctx.scale(vs.zoom, vs.zoom);
     ctx.translate(-camera.x + camera.shakeX, -camera.y + camera.shakeY);
     const state: DrawState = {
       buildings,
@@ -1875,17 +1894,17 @@ export function createGame(
     drawActors(ctx, state, now);
     ctx.restore();
     if (player.wanted > 0 && gameStarted && !busted && screen === "play") {
-      const g = ctx.createRadialGradient(vs.w / 2, vs.h / 2, vs.w * 0.35, vs.w / 2, vs.h / 2, vs.w * 0.72);
+      const g = ctx.createRadialGradient(hud.w / 2, hud.h / 2, hud.w * 0.35, hud.w / 2, hud.h / 2, hud.w * 0.72);
       g.addColorStop(0, "rgba(0,0,0,0)");
       g.addColorStop(1, "rgba(180,30,30," + (0.12 + player.wanted * 0.05) + ")");
       ctx.fillStyle = g;
-      ctx.fillRect(0, 0, vs.w, vs.h);
+      ctx.fillRect(0, 0, hud.w, hud.h);
     }
     if (gameStarted && screen !== "map" && screen !== "start") {
-      drawMinimap(ctx, state, vs, now);
-      if (screen === "play") drawHudNav(ctx, state, vs, now);
+      drawMinimap(ctx, state, hud, now);
+      if (screen === "play") drawHudNav(ctx, state, hud, now);
     }
-    if (screen === "map") drawMapOverlay(ctx, state, vs);
+    if (screen === "map") drawMapOverlay(ctx, state, hud);
   }
 
   function frame(t: number) {
