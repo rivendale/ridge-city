@@ -5,6 +5,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## 2026-11-01
 
+### Fixed
+
+- Beginner Find-Mack funnel: idle walk auto-pulls toward Mack, input is softly biased that way, and the HUD arrow pulses with a clear “walk to MACK” hint.
+
 ### Added
 
 - On-foot camera zooms in (~1.55×) so you and nearby targets are readable; driving stays at the wide view.

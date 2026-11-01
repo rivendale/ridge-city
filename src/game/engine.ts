@@ -177,6 +177,8 @@ export function createGame(
   setMusicOn(settings.music);
   let injectKeys: Set<string> | null = null;
   let injectSteer: number | null = null;
+  /** Beginner meet-Mack soft funnel: seconds idle without move input. */
+  let mackNudgeIdle = 0;
   let radioLabel = "RIDGE FM";
   let sprayLock = 0;
   let hideClock = 0;
@@ -1455,10 +1457,50 @@ export function createGame(
         if (skids.length > 90) skids.shift();
       }
     } else {
-      if (len > 0.08) {
-        player.x += ix * WALK * dt;
-        player.y += iy * WALK * dt;
-        player.angle = Math.atan2(iy, ix);
+      let wx = ix;
+      let wy = iy;
+      let wlen = len;
+      // Beginner "Find Mack": if the player is idle, gently pull toward Mack so random
+      // WASD mash still ends at the garage instead of drifting across the map.
+      if (
+        difficulty === "beginner" &&
+        currentJob === "meet" &&
+        onClock &&
+        !player.vehicle
+      ) {
+        const mack = peds.find((p) => p.kind === "mack");
+        if (mack) {
+          if (len <= 0.08) {
+            mackNudgeIdle += dt;
+            if (mackNudgeIdle > 0.85) {
+              const dx = mack.x - player.x;
+              const dy = mack.y - player.y;
+              const d = Math.hypot(dx, dy) || 1;
+              wx = dx / d;
+              wy = dy / d;
+              wlen = 1;
+            }
+          } else {
+            mackNudgeIdle = 0;
+            // Soft bias: blend a little toward Mack while they walk, so the funnel stays clear.
+            const dx = mack.x - player.x;
+            const dy = mack.y - player.y;
+            const d = Math.hypot(dx, dy) || 1;
+            wx = wx * 0.72 + (dx / d) * 0.28;
+            wy = wy * 0.72 + (dy / d) * 0.28;
+            const n = Math.hypot(wx, wy) || 1;
+            wx /= n;
+            wy /= n;
+            wlen = 1;
+          }
+        }
+      } else {
+        mackNudgeIdle = 0;
+      }
+      if (wlen > 0.08) {
+        player.x += wx * WALK * dt;
+        player.y += wy * WALK * dt;
+        player.angle = Math.atan2(wy, wx);
       }
       resolveSolid(player, player.r);
     }
@@ -1814,6 +1856,8 @@ export function createGame(
       hint = "RAMP  ·  east, fast, and straight";
     else if (pinning) hint = player.vehicle ? "THEY'RE BOXING YOU  ·  HIT THE GAS" : "THEY'RE ON YOU  ·  RUN";
     else if (player.vehicle) hint = "E bail  ·  SHIFT slide  ·  H horn  ·  R radio";
+    else if (difficulty === "beginner" && currentJob === "meet" && onClock && mack && !nearMack)
+      hint = "FOLLOW THE ARROW  ·  walk to MACK at the garage";
     else hint = "";
 
     prevHeld = new Set(held);

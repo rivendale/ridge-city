@@ -731,3 +731,15 @@ canvas#game {
     flex-direction: row;
   }
 }
+
+.nav-arrow.nav-pulse {
+  animation: navGlow 0.9s ease-in-out infinite alternate;
+  filter: drop-shadow(0 0 6px #f0c060);
+}
+@keyframes navGlow {
+  from { filter: drop-shadow(0 0 2px #f0c060); opacity: 0.85; }
+  to { filter: drop-shadow(0 0 10px #ffe08a); opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .nav-arrow.nav-pulse { animation: none; }
+}
