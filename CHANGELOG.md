@@ -5,6 +5,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## 2026-10-31
 
+### Changed
+
+- Sound and the radio are now on by default (they used to start off, so most players never heard the game). Audio still only starts when you press Beginner, Experienced or Continue, as browsers require. Settings turns either off, and the choice is saved. Settings now save under `ridgecity-settings-v3`; an older save keeps its camera-shake choice and moves to sound on.
+
 ### Fixed
 
 - Phone held sideways: the start menu now fits the screen, so Beginner, Experienced and Settings are always visible and the game can be started. Menu text scrolls above the buttons instead of pushing them off screen.

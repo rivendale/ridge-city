@@ -34,8 +34,8 @@ const emptyHud: HudSnapshot = {
   hasSave: false,
   ownedCount: 0,
   shake: true,
-  muted: true,
-  music: false,
+  muted: false,
+  music: true,
   navDist: null,
   navAngle: 0,
   jobLabel: "JOB",
@@ -299,7 +299,7 @@ export function RidgeCity() {
               </button>
             </div>
             <p className="fine">
-              Sound starts off. Open Settings to turn it on. WASD, arrows, or numpad to drive. Esc pauses.
+              Sound and radio are on. Settings turns them off. WASD, arrows, or numpad to drive. Esc pauses.
             </p>
           </div>
         </div>
@@ -343,7 +343,7 @@ export function RidgeCity() {
                 </div>
               </>
             )}
-            {hud.screen === "settings" && <p className="blurb">Sound is off until you turn it on here.</p>}
+            {hud.screen === "settings" && <p className="blurb">Sound and radio start on. Turn them off here; the choice is saved.</p>}
             <div className="settings-list">
               <button type="button" className="set-row" onClick={() => g.current?.setMuted(!hud.muted)}>
                 <span className="set-label">
