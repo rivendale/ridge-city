@@ -84,16 +84,25 @@ export function clearSave() {
   }
 }
 
+// v3: sound and radio default ON. A v2 blob only says muted/music=off because
+// that was the old default, so v2 keeps its shake choice and moves to sound on.
+const SETTINGS_KEY = "ridgecity-settings-v3";
+
 export function loadSettings() {
-  const fallback = { shake: true, muted: true, music: false };
+  const fallback = { shake: true, muted: false, music: true };
   try {
-    const raw = localStorage.getItem("ridgecity-settings-v2");
-    if (!raw) return fallback;
+    const raw = localStorage.getItem(SETTINGS_KEY);
+    if (!raw) {
+      const old = localStorage.getItem("ridgecity-settings-v2");
+      if (!old) return fallback;
+      const p2 = JSON.parse(old) as Partial<{ shake: boolean }>;
+      return { ...fallback, shake: p2.shake ?? true };
+    }
     const parsed = JSON.parse(raw) as Partial<{ shake: boolean; muted: boolean; music: boolean }>;
     return {
       shake: parsed.shake ?? true,
-      muted: parsed.muted ?? true,
-      music: parsed.music ?? false,
+      muted: parsed.muted ?? false,
+      music: parsed.music ?? true,
     };
   } catch {
     return fallback;
@@ -102,7 +111,7 @@ export function loadSettings() {
 
 export function writeSettings(s: { shake: boolean; muted: boolean; music: boolean }) {
   try {
-    localStorage.setItem("ridgecity-settings-v2", JSON.stringify(s));
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(s));
   } catch {
     /* ok */
   }
