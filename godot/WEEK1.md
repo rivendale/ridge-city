@@ -3,7 +3,7 @@
 Approved 2026-10-01: one city block, one car, a blaster and 20 breakable objects, exported to the web
 and tested on a tablet and a laptop before any more content gets built.
 
-Plays at `/proto/godot-week1/` (https://ridgecity.icf.games/proto/godot-week1/ once merged).
+Plays locally at `/proto/godot-week1/` (kept in `public/proto/` for local serving; not included in the GitHub Pages deploy).
 
 ## What is in it
 

@@ -17,7 +17,7 @@ import urllib.request
 
 from PIL import Image
 
-from compose import INDEX, PUBLIC, ROOT, game_kicker, rating_problems
+from compose import INDEX, OUT, PUBLIC, ROOT, game_kicker, rating_problems
 
 SIZES = {"og.jpg": ((1200, 630), "JPEG"), "banner.jpg": ((1200, 264), "JPEG"),
          "icon-512.png": ((512, 512), "PNG"), "icon-192.png": ((192, 192), "PNG"),
@@ -80,12 +80,14 @@ def meta(html, attr, key):
 def local():
     fails = []
     for name, (size, fmt) in SIZES.items():
-        if not (PUBLIC / name).is_file():
-            fails.append(f"public/{name} is missing: run python3 media/compose.py")
+        base = OUT if name == "banner.jpg" else PUBLIC
+        label = "media/out" if name == "banner.jpg" else "public"
+        if not (base / name).is_file():
+            fails.append(f"{label}/{name} is missing: run python3 media/compose.py")
             continue
-        im = Image.open(PUBLIC / name)
+        im = Image.open(base / name)
         if (im.size, im.format) != (size, fmt):
-            fails.append(f"public/{name} is {im.format} {im.size}, wants {fmt} {size}")
+            fails.append(f"{label}/{name} is {im.format} {im.size}, wants {fmt} {size}")
     stills = sorted((ROOT / "media/screens").glob("*.png"))
     if not 4 <= len(stills) <= 6:
         fails.append(f"media/screens has {len(stills)} stills, the spec wants 4 to 6")
