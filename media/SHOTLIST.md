@@ -20,7 +20,7 @@ what a laptop at 125-150% display scaling shows; at 1280x720 and scale 1 the car
 
 - A crafted save sets the time of day and puts the player in free roam, so no job arrow points off-screen.
   Shot 1 is a real new game (Beginner) instead.
-- The game's own test hook (`window.__ridgeCity`: `warp`, `setWanted`, `forceRadio`) places the player and
+- The game's own test hook (`window.__ridgeCity`: `warp`, `setWanted`, `forceRadio`; available in `npm run dev` only) places the player and
   sets the heat. Driving, jacking, robbing and sliding are real key presses. The map's two yellow cars were
   bought at Mack's through the garage menu.
 - The keyboard help strip (`.controls-hint`) is hidden in every shot. The control-hint bubble (`.hint`) and the
