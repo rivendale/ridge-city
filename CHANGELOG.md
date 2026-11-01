@@ -5,6 +5,12 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## 2026-11-01
 
+### Added
+
+- On-foot camera zooms in (~1.55×) so you and nearby targets are readable; driving stays at the wide view.
+- Mack gets a bright orange ground ring and a clearer label so he is easy to spot.
+- Guided first three jobs (Find Mack → jack a car → Hit SLICE CO.) with step toasts and cash pop-ups.
+
 ### Changed
 
 - Beginner arrest grace. On Beginner, the first arrest of a session is a warning instead: the heat clears, you keep your cash, and the screen says "Let off with a warning · next time it's a fine". It doesn't apply during evade jobs or the finale. Cops on Beginner also need a little longer to pin you (about half a second more), so the "They're on you · run" warning has time to work. Play-through bots were arrested about 40 seconds in on Beginner, before reaching Mack. Experienced is unchanged.

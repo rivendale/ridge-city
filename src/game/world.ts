@@ -50,6 +50,9 @@ export const JOBS: Record<JobId, JobDef> = {
   done: { text: "Mack's quiet. City's still open. Keep boosting.", short: "Off the clock", pay: 0 },
 };
 
+/** First three story jobs get guided toasts and cash pop-ups. */
+export const GUIDED_STORY_JOBS: JobId[] = ["meet", "boost1", "shop1"];
+
 export const JOB_ORDER: JobId[] = [
   "meet",
   "boost1",
