@@ -196,7 +196,7 @@ export function RidgeCity() {
             <div className="mission-text">{hud.jobText}</div>
             {hud.navDist != null && hud.screen === "play" && hud.onClock && (
               <div className="nav-line">
-                <span className="nav-arrow" style={{ transform: `rotate(${hud.navAngle + Math.PI / 2}rad)` }} />
+                <span className={`nav-arrow${hud.jobText?.includes("Mack") || hud.mackNext?.includes("Mack") ? " nav-pulse" : ""}`} style={{ transform: `rotate(${hud.navAngle + Math.PI / 2}rad)` }} />
                 <span>{hud.navDist} m</span>
               </div>
             )}
