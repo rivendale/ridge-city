@@ -3,6 +3,12 @@
 All notable changes to Ridge City are listed here, newest first.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## 2026-11-01
+
+### Changed
+
+- Beginner arrest grace. On Beginner, the first arrest of a session is a warning instead: the heat clears, you keep your cash, and the screen says "Let off with a warning · next time it's a fine". It doesn't apply during evade jobs or the finale. Cops on Beginner also need a little longer to pin you (about half a second more), so the "They're on you · run" warning has time to work. Play-through bots were arrested about 40 seconds in on Beginner, before reaching Mack. Experienced is unchanged.
+
 ## 2026-10-31
 
 ### Changed
