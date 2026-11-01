@@ -144,6 +144,7 @@ export function createGame(
   let difficulty: Difficulty = "beginner";
   let gameStarted = false;
   let busted = false;
+  let beginnerWarned = false;
   let currentJob: JobId = "meet";
   let jobProg = 0;
   let jobNeed = 1;
@@ -1128,6 +1129,15 @@ export function createGame(
 
   function doBust() {
     if (busted) return;
+    // Beginner grace: the first arrest of a session is a warning. Heat clears and
+    // the player keeps their cash, so a new player isn't arrested before meeting Mack.
+    if (difficulty === "beginner" && !beginnerWarned && currentJob !== "evade" && currentJob !== "finale" && !(currentJob === "radio" && radioKind === "evade")) {
+      beginnerWarned = true;
+      for (const c of cops) c.pin = 0;
+      layLow("LET OFF WITH A WARNING  ·  NEXT TIME IT'S A FINE");
+      sfx("bust");
+      return;
+    }
     busted = true;
     screen = "bust";
     const fine = Math.min(player.cash, 80 + player.wanted * 40);
@@ -1588,7 +1598,7 @@ export function createGame(
           if (grab) {
             c.pin += dt;
             pinning = true;
-            if (c.pin >= 0.35) doBust();
+            if (c.pin >= (difficulty === "beginner" ? 0.7 : 0.35)) doBust();
           } else c.pin = Math.max(0, c.pin - dt * 2);
           continue;
         }
@@ -1611,7 +1621,8 @@ export function createGame(
         if (grab) {
           c.pin += dt;
           pinning = true;
-          const need = player.vehicle ? (player.wanted >= 3 ? 0.38 : 0.52) : 0.2;
+          const need =
+            (player.vehicle ? (player.wanted >= 3 ? 0.38 : 0.52) : 0.2) + (difficulty === "beginner" ? 0.45 : 0);
           if (c.pin >= need) doBust();
         } else c.pin = Math.max(0, c.pin - dt * 2);
         if (player.vehicle && d < 30 && playerSpd > 130) {
