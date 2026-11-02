@@ -3,3 +3,7 @@ node_modules/
 dist/
 __pycache__/
 media/out/
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
