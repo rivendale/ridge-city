@@ -1,7 +1,7 @@
 # media/
 
 Sources for the Ridge City media kit. What ships is in `public/`: `og.jpg` (1200x630 share card),
-`banner.jpg` (1200x264), `icon-512.png`, `icon-192.png` (both in the manifest, for Chrome's install
+`media/out/banner.jpg` (1200x264; not deployed), `icon-512.png`, `icon-192.png` (both in the manifest, for Chrome's install
 prompt) and `icon-180.png` (iOS).
 
 | file | what |
@@ -20,7 +20,7 @@ install of `playwright-core` and run `node capture.mjs <outdir> [shot ...]`.
 Provenance: every image is the game's own render or drawn here in SVG. No AI-generated assets. Fonts are
 the game's own, Barlow Condensed and IBM Plex Sans (SIL Open Font License), fetched from Google Fonts at
 build time and not stored in the repo; `compose.py` pins each download by sha256 and refuses a different
-file, so a rebuild reproduces `og.jpg` and `banner.jpg` byte for byte. `public/game/splash.jpg` (from the Grok export) is not used.
+file, so a rebuild reproduces `og.jpg` and `media/out/banner.jpg` byte for byte.
 
 ## Rating
 

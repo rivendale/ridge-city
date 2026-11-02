@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Ridge City media kit v1: share card, banner and icons from the captured key art.
 
-    python3 media/compose.py            # writes public/og.jpg, public/banner.jpg, public/icon-{512,192,180}.png
+    python3 media/compose.py            # writes public/og.jpg, media/out/banner.jpg, public/icon-{512,192,180}.png
 
 Inputs: media/keyart.png (1920x1080, the game's own render at 2x, no DOM HUD; see media/capture.mjs `keyart`)
 and media/icon.svg. Fonts are the game's own (Barlow Condensed, IBM Plex Sans; SIL OFL), fetched from
@@ -24,6 +24,7 @@ from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 ROOT = Path(__file__).resolve().parent.parent
 MEDIA, PUBLIC = ROOT / "media", ROOT / "public"
+OUT = MEDIA / "out"
 FONTS = Path(os.environ.get("RC_FONTS", Path.home() / ".cache/ridge-city-media/fonts"))
 
 # Google Fonts static TTFs (css2 API, truetype flavour), the same families index.html loads
@@ -224,8 +225,11 @@ if __name__ == "__main__":
     art = Image.open(MEDIA / "keyart.png").convert("RGB")
     assert art.size == (1920, 1080), art.size
     card(art, kicker).save(PUBLIC / "og.jpg", quality=88, optimize=True, progressive=True, comment=kicker.encode("utf-8"))
-    banner(art).save(PUBLIC / "banner.jpg", quality=88, optimize=True, progressive=True)
+    OUT.mkdir(parents=True, exist_ok=True)
+    banner(art).save(OUT / "banner.jpg", quality=88, optimize=True, progressive=True)
     icons()
-    for f in ("og.jpg", "banner.jpg", "icon-512.png", "icon-192.png", "icon-180.png"):
+    for f in ("og.jpg", "icon-512.png", "icon-192.png", "icon-180.png"):
         im = Image.open(PUBLIC / f)
         print(f, im.size, im.mode, (PUBLIC / f).stat().st_size // 1024, "KB")
+    im = Image.open(OUT / "banner.jpg")
+    print("banner.jpg", im.size, im.mode, (OUT / "banner.jpg").stat().st_size // 1024, "KB", "(media/out)")
