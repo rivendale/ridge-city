@@ -2084,70 +2084,74 @@ export function createGame(
     assets = a;
   });
 
-  window.__controlsTest = {
-    getYaw: () => -player.angle,
-    getSpeed: () =>
-      player.vehicle ? Math.abs(player.vehicle.speed) : anyHeld(MOVE_UP) ? WALK : 0,
-    setSteer: (v) => {
-      injectSteer = v;
-    },
-    setKeys: (codes) => {
-      injectKeys = new Set(codes);
-      if (codes.length === 0) {
-        injectKeys = null;
-        injectSteer = null;
-      }
-    },
-  };
-  window.__ridgeCity = {
-    getState: snapshot,
-    jack: () => {
-      edgeJack = true;
-    },
-    act: () => {
-      edgeAct = true;
-    },
-    warp: (x: number, y: number, angle?: number) => {
-      player.x = x;
-      player.y = y;
-      if (angle != null) player.angle = angle;
-      if (player.vehicle) {
-        player.vehicle.x = x;
-        player.vehicle.y = y;
-        if (angle != null) player.vehicle.angle = angle;
-      }
-    },
-    startTaxiDrop: () => {
-      currentJob = "taxi";
-      jobProg = 1;
-      const drop = pierDropPoint();
-      markers.length = 0;
-      markers.push({ x: drop.x, y: drop.y, kind: "drop" });
-    },
-    forceRadio: (kind: RadioKind) => {
-      onClock = false;
-      radioOffer = kind;
-      radioPay = radioPrice(kind);
-      if (kind !== "fare") clearFarePed();
-      fillRadioMarkers(kind);
-    },
-    setWanted,
-    placeCop: () => {
-      ensureCops();
-      let c = cops.find((v) => v.alive);
-      if (!c) {
-        spawnCop();
-        c = cops[cops.length - 1];
-      }
-      if (!c) return;
-      c.alive = true;
-      c.x = player.x + 8;
-      c.y = player.y;
-      c.speed = 20;
-      c.pin = 0;
-    },
-    hold,
-  };
+  // Dev/media-capture hooks only. Vite DCE strips this from production builds.
+  // media/capture.mjs expects them on `npm run dev` (or any non-production build).
+  if (import.meta.env.DEV) {
+    window.__controlsTest = {
+      getYaw: () => -player.angle,
+      getSpeed: () =>
+        player.vehicle ? Math.abs(player.vehicle.speed) : anyHeld(MOVE_UP) ? WALK : 0,
+      setSteer: (v) => {
+        injectSteer = v;
+      },
+      setKeys: (codes) => {
+        injectKeys = new Set(codes);
+        if (codes.length === 0) {
+          injectKeys = null;
+          injectSteer = null;
+        }
+      },
+    };
+    window.__ridgeCity = {
+      getState: snapshot,
+      jack: () => {
+        edgeJack = true;
+      },
+      act: () => {
+        edgeAct = true;
+      },
+      warp: (x: number, y: number, angle?: number) => {
+        player.x = x;
+        player.y = y;
+        if (angle != null) player.angle = angle;
+        if (player.vehicle) {
+          player.vehicle.x = x;
+          player.vehicle.y = y;
+          if (angle != null) player.vehicle.angle = angle;
+        }
+      },
+      startTaxiDrop: () => {
+        currentJob = "taxi";
+        jobProg = 1;
+        const drop = pierDropPoint();
+        markers.length = 0;
+        markers.push({ x: drop.x, y: drop.y, kind: "drop" });
+      },
+      forceRadio: (kind: RadioKind) => {
+        onClock = false;
+        radioOffer = kind;
+        radioPay = radioPrice(kind);
+        if (kind !== "fare") clearFarePed();
+        fillRadioMarkers(kind);
+      },
+      setWanted,
+      placeCop: () => {
+        ensureCops();
+        let c = cops.find((v) => v.alive);
+        if (!c) {
+          spawnCop();
+          c = cops[cops.length - 1];
+        }
+        if (!c) return;
+        c.alive = true;
+        c.x = player.x + 8;
+        c.y = player.y;
+        c.speed = 20;
+        c.pin = 0;
+      },
+      hold,
+    };
+  }
 
   raf = requestAnimationFrame(frame);
 
@@ -2234,7 +2238,10 @@ export function createGame(
       window.removeEventListener("resize", onResize);
       canvas.removeEventListener("pointerdown", onCanvasPointer);
       destroyAudio();
-      delete window.__controlsTest;
+      if (import.meta.env.DEV) {
+        delete window.__controlsTest;
+        delete window.__ridgeCity;
+      }
     },
   };
 
