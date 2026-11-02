@@ -31,9 +31,9 @@ export default defineConfig({
     },
   },
   webServer: {
-    command: process.env.CI ? preview : `npm run build && ${preview}`,
+    command: `npm run build && ${preview}`,
     url: "http://localhost:4173",
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: false,
     timeout: 120_000,
   },
   projects: [

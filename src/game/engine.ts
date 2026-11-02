@@ -105,6 +105,31 @@ function wrapAngle(a: number): number {
 function clamp(n: number, a: number, b: number) {
   return Math.max(a, Math.min(b, n));
 }
+
+/** `?seed=<uint32>` fixes Math.random and anchors the frame clock at 0. Normal play omits it. */
+function querySeed(): number | null {
+  try {
+    const raw = new URLSearchParams(window.location.search).get("seed");
+    if (raw == null || !/^\d+$/.test(raw)) return null;
+    const n = Number(raw);
+    if (!Number.isSafeInteger(n) || n > 0xffffffff) return null;
+    return n;
+  } catch {
+    return null;
+  }
+}
+
+function mulberry32(seed: number): () => number {
+  let a = seed >>> 0;
+  return () => {
+    a |= 0;
+    a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
 function circleRect(cx: number, cy: number, r: number, rx: number, ry: number, rw: number, rh: number) {
   const nx = clamp(cx, rx, rx + rw);
   const ny = clamp(cy, ry, ry + rh);
@@ -125,6 +150,8 @@ export function createGame(
   const ctxRaw = canvas.getContext("2d");
   if (!ctxRaw) throw new Error("No 2d context");
   const ctx = ctxRaw;
+  const seed = querySeed();
+  if (seed != null) Math.random = mulberry32(seed);
 
   const world = makeWorld();
   const { buildings, shops, parked, peds, parks, envelopes, props } = world;
@@ -167,7 +194,7 @@ export function createGame(
   let toastMsg = "";
   let toastT = 0;
   let hint = "";
-  let lastTime = performance.now();
+  let lastTime = seed != null ? 0 : performance.now();
   let acc = 0;
   let raf = 0;
   let running = true;
@@ -2082,6 +2109,7 @@ export function createGame(
   spawnTraffic();
   void loadAssets(ctx).then((a) => {
     assets = a;
+    if (seed != null && a.ready) canvas.dataset.assets = "ready";
   });
 
   // Dev/media-capture hooks only. Vite DCE strips this from production builds.
