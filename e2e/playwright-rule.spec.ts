@@ -60,7 +60,20 @@ test.describe("Playwright local-only rule", () => {
       }
     });
 
-    const result = await page.evaluate(async () => {
+    // Listen before the fetch. A dead network also rejects fetch, so the
+    // failure reason has to be the route guard's abort("blockedbyclient").
+    const failure = page.waitForEvent("requestfailed", {
+      predicate: (request) => {
+        try {
+          return new URL(request.url()).hostname === "example.com";
+        } catch {
+          return false;
+        }
+      },
+      timeout: 5_000,
+    });
+
+    const result = page.evaluate(async () => {
       try {
         const res = await fetch("https://example.com/", { mode: "no-cors" });
         return { ok: true, type: res.type };
@@ -69,7 +82,16 @@ test.describe("Playwright local-only rule", () => {
       }
     });
 
+    const [failedRequest, fetchResult] = await Promise.all([failure, result]);
+
     expect(externalReached, "an external response should never arrive").toBe(false);
-    fixtureExpect(result.ok, "fetch to example.com must be blocked").toBe(false);
+    fixtureExpect(fetchResult.ok, "fetch to example.com must be blocked").toBe(false);
+    // route.abort("blockedbyclient") surfaces as net::ERR_BLOCKED_BY_CLIENT,
+    // with an ".Inspector" suffix when Chrome reports the DevTools interception.
+    // DNS, TLS, and offline failures use a different net::ERR_* code.
+    expect(
+      failedRequest.failure()?.errorText ?? "",
+      "example.com must be aborted by the local-only route guard",
+    ).toMatch(/^net::ERR_BLOCKED_BY_CLIENT(?:\.|$)/);
   });
 });
