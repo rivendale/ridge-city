@@ -7,6 +7,10 @@ const port = 4173;
  * >= 156.0.8078.73, Playwright may run ONLY against our own local builds
  * (localhost / 127.0.0.1 / file served by this config's webServer), never
  * against outside sites, and must set chromiumSandbox: true.
+ *
+ * chromiumSandbox belongs in use.launchOptions. Playwright Test ignores it
+ * when it is set directly under use. channel: "chrome" uses branded Chrome.
+ * Projects that override use must also set launchOptions.chromiumSandbox.
  */
 export default defineConfig({
   testDir: "e2e",
@@ -27,7 +31,7 @@ export default defineConfig({
   },
   use: {
     baseURL: `http://127.0.0.1:${port}`,
-    chromiumSandbox: true,
+    channel: "chrome",
     viewport: { width: 960, height: 540 },
     deviceScaleFactor: 1,
     locale: "en-US",
@@ -35,6 +39,7 @@ export default defineConfig({
     colorScheme: "dark",
     reducedMotion: "reduce",
     launchOptions: {
+      chromiumSandbox: true,
       args: [
         "--font-render-hinting=none",
         "--disable-font-subpixel-positioning",
@@ -54,9 +59,18 @@ export default defineConfig({
       name: "chromium",
       use: {
         ...devices["Desktop Chrome"],
+        channel: "chrome",
         viewport: { width: 960, height: 540 },
         deviceScaleFactor: 1,
-        chromiumSandbox: true,
+        launchOptions: {
+          chromiumSandbox: true,
+          args: [
+            "--font-render-hinting=none",
+            "--disable-font-subpixel-positioning",
+            "--disable-lcd-text",
+            "--force-device-scale-factor=1",
+          ],
+        },
       },
     },
   ],
