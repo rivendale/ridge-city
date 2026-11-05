@@ -3,6 +3,12 @@
 All notable changes to Ridge City are listed here, newest first.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## 2026-11-05
+
+### Changed
+
+- Ground textures load faster on the first visit. `asphalt.jpg`, `grass.jpg`, and `water.jpg` are still the same 1408×1408 files under `public/game/`, recompressed as progressive JPEG. Together they went from about 2.42 MB to about 0.76 MB.
+
 ## 2026-11-01
 
 ### Fixed
