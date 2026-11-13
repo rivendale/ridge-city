@@ -3,6 +3,12 @@
 All notable changes to Ridge City are listed here, newest first.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## 2026-11-13
+
+### Changed
+
+- In Mack's garage, cars you cannot afford are dimmed and the row says "Need $X more" in red, the same way Fresh Circuit marks an upgrade you cannot buy. Paint $80 dims the same way when you are short. A tap on a dimmed row still shows the existing "NOT ENOUGH" toast; affordable cars and Paint are unchanged.
+
 ## 2026-11-05
 
 ### Changed

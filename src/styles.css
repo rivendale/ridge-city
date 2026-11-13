@@ -534,6 +534,24 @@ canvas#game {
   letter-spacing: 0.06em;
 }
 
+.cat-price {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.cat-need {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  color: #ff9e94;
+}
+
+.cat-row.cant,
+.btn.cant {
+  opacity: 0.6;
+}
+
 .map-close {
   position: absolute;
   top: 16px;
