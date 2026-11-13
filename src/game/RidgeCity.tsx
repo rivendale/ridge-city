@@ -394,20 +394,35 @@ export function RidgeCity() {
             <h2>GARAGE</h2>
             <p className="blurb">Duck in to lose heat. Buy a beater, paint the one you're in, or get back on the street.</p>
             <div className="catalog">
-              {CATALOG.map((c) => (
-                <button
-                  key={c.type}
-                  type="button"
-                  className="cat-row"
-                  onClick={() => g.current?.buyCar(c.type)}
-                >
-                  <span>{c.type.toUpperCase()}</span>
-                  <span>${c.price}</span>
-                </button>
-              ))}
+              {CATALOG.map((c) => {
+                // Dim cars you can't afford yet and say how much more you need.
+                // A tap still reaches buyCar, which shows the NOT ENOUGH toast.
+                const short = c.price - hud.cash;
+                return (
+                  <button
+                    key={c.type}
+                    type="button"
+                    className={short > 0 ? "cat-row cant" : "cat-row"}
+                    aria-disabled={short > 0 ? true : undefined}
+                    aria-label={short > 0 ? `${c.type}, $${c.price}, need $${short} more` : undefined}
+                    onClick={() => g.current?.buyCar(c.type)}
+                  >
+                    <span>{c.type.toUpperCase()}</span>
+                    <span className="cat-price">
+                      {short > 0 && <span className="cat-need">Need ${short} more</span>}
+                      <span>${c.price}</span>
+                    </span>
+                  </button>
+                );
+              })}
             </div>
             <div className="mode-row">
-              <button type="button" className="btn ghost" onClick={() => g.current?.paintCar()}>
+              <button
+                type="button"
+                className={hud.cash < 80 ? "btn ghost cant" : "btn ghost"}
+                aria-disabled={hud.cash < 80 ? true : undefined}
+                onClick={() => g.current?.paintCar()}
+              >
                 Paint $80
               </button>
               <button type="button" className="btn primary" onClick={() => g.current?.closeOverlay()}>
