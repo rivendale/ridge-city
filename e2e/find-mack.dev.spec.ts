@@ -39,9 +39,20 @@ test("ACT inside the garage lot finishes Find Mack instead of opening the garage
   await startBeginner(page);
   expect(await page.evaluate(() => window.__ridgeCity!.getState().jobId)).toBe("meet");
 
+  // The hint in the lot points at Mack, not the garage.
+  await page.evaluate(({ x, y }) => window.__ridgeCity!.warp!(x, y), LOT_CORNER);
+  await expect.poll(() => page.evaluate(() => window.__ridgeCity!.getState().hint)).toBe("SPACE / ACT  talk to Mack");
+
   const after = await actAt(page, LOT_CORNER);
   expect(after.jobId).not.toBe("meet");
   expect(after.screen).not.toBe("garage");
+});
+
+test("next to Mack and the parked coupe, the hint says talk to Mack, not boost the car", async ({ page }) => {
+  await startBeginner(page);
+  // Between Mack (2920, 2680) and the coupe parked at (2920, 2660).
+  await page.evaluate(() => window.__ridgeCity!.warp!(2930, 2676));
+  await expect.poll(() => page.evaluate(() => window.__ridgeCity!.getState().hint)).toBe("SPACE / ACT  talk to Mack");
 });
 
 test("ACT inside the garage bay also finishes Find Mack", async ({ page }) => {

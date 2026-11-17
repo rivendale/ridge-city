@@ -1831,7 +1831,11 @@ export function createGame(
       const b = s.b;
       if (dist(player.x, player.y, b.x + b.w / 2, b.y + b.h + 8) < 42) shopNear = true;
     }
-    if (car) hint = "E / JACK  boost this car";
+    // Find Mack: in Mack's lot (or next to him), ACT talks to him, so say that
+    // before the "boost this car" and garage hints that used to win here.
+    if (onClock && currentJob === "meet" && (nearMack || inGaragePark(player.x, player.y)))
+      hint = "SPACE / ACT  talk to Mack";
+    else if (car) hint = "E / JACK  boost this car";
     else if (radioOffer) hint = "ACT take radio job  ·  R skip";
     else if (nearMack) hint = onClock ? "SPACE / ACT  talk to Mack" : "SPACE / ACT  take Mack's job";
     else if (shopNear) hint = "SPACE / ACT  hit the register";
@@ -1846,8 +1850,6 @@ export function createGame(
     else if (circleRect(player.x, player.y, 20, CHOP_SHOP.x, CHOP_SHOP.y, CHOP_SHOP.w, CHOP_SHOP.h + 20))
       hint = "SPACE  fence this car";
     else if (circleRect(player.x, player.y, 20, MOTEL.x, MOTEL.y, MOTEL.w, MOTEL.h + 20)) hint = "SPACE  save at the motel";
-    else if (onClock && currentJob === "meet" && inGaragePark(player.x, player.y))
-      hint = "SPACE / ACT  talk to Mack";
     else if (inGaragePark(player.x, player.y))
       hint =
         player.vehicle && Math.abs(player.vehicle.speed) >= 120
