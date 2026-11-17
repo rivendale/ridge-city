@@ -59,6 +59,6 @@ test("control: after Find Mack, ACT in the garage still opens the garage", async
 
   await page.waitForTimeout(300);
   const second = await actAt(page, BAY_INSIDE);
-  expect(second.vehicle).toBeFalsy();
+  expect(second.vehicle).toBe("ON FOOT");
   expect(second.screen).toBe("garage");
 });
