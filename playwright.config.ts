@@ -1,6 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
 const port = 4173;
+const devPort = 5174;
 
 /**
  * Nick's Playwright rule (2026-11-02): until Playwright bundles Chromium
@@ -48,15 +49,25 @@ export default defineConfig({
       ],
     },
   },
-  webServer: {
-    command: `npm run preview -- --host 127.0.0.1 --port ${port} --strictPort`,
-    url: `http://127.0.0.1:${port}`,
-    reuseExistingServer: !process.env.CI,
-    timeout: 30_000,
-  },
+  webServer: [
+    {
+      command: `npm run preview -- --host 127.0.0.1 --port ${port} --strictPort`,
+      url: `http://127.0.0.1:${port}`,
+      reuseExistingServer: !process.env.CI,
+      timeout: 30_000,
+    },
+    {
+      // Vite dev server: window.__ridgeCity test hooks only exist in DEV builds.
+      command: `npm run dev -- --host 127.0.0.1 --port ${devPort} --strictPort`,
+      url: `http://127.0.0.1:${devPort}`,
+      reuseExistingServer: !process.env.CI,
+      timeout: 30_000,
+    },
+  ],
   projects: [
     {
       name: "chromium",
+      testIgnore: /\.dev\.spec\.ts$/,
       use: {
         ...devices["Desktop Chrome"],
         channel: "chrome",
@@ -70,6 +81,21 @@ export default defineConfig({
             "--disable-lcd-text",
             "--force-device-scale-factor=1",
           ],
+        },
+      },
+    },
+    {
+      // DEV-only gameplay checks that need window.__ridgeCity (see e2e/*.dev.spec.ts).
+      name: "dev-hooks",
+      testMatch: /\.dev\.spec\.ts$/,
+      use: {
+        ...devices["Desktop Chrome"],
+        channel: "chrome",
+        baseURL: `http://127.0.0.1:${devPort}`,
+        viewport: { width: 960, height: 540 },
+        deviceScaleFactor: 1,
+        launchOptions: {
+          chromiumSandbox: true,
         },
       },
     },

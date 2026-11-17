@@ -862,6 +862,13 @@ export function createGame(
       talkMack();
       return;
     }
+    // Find Mack: Mack stands inside the garage lot, but only part of the lot is
+    // within his talk radius. While the first job is "meet", ACT anywhere in the
+    // lot talks to him instead of opening the garage (which left the job stuck).
+    if (onClock && currentJob === "meet" && inGaragePark(player.x, player.y)) {
+      talkMack();
+      return;
+    }
     for (const s of shops) {
       const b = s.b;
       const door = doorOf(b);
@@ -1839,6 +1846,8 @@ export function createGame(
     else if (circleRect(player.x, player.y, 20, CHOP_SHOP.x, CHOP_SHOP.y, CHOP_SHOP.w, CHOP_SHOP.h + 20))
       hint = "SPACE  fence this car";
     else if (circleRect(player.x, player.y, 20, MOTEL.x, MOTEL.y, MOTEL.w, MOTEL.h + 20)) hint = "SPACE  save at the motel";
+    else if (onClock && currentJob === "meet" && inGaragePark(player.x, player.y))
+      hint = "SPACE / ACT  talk to Mack";
     else if (inGaragePark(player.x, player.y))
       hint =
         player.vehicle && Math.abs(player.vehicle.speed) >= 120
