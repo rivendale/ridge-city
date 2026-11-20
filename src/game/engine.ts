@@ -862,6 +862,13 @@ export function createGame(
       talkMack();
       return;
     }
+    // Find Mack: Mack stands inside the garage lot, but only part of the lot is
+    // within his talk radius. While the first job is "meet", ACT anywhere in the
+    // lot talks to him instead of opening the garage (which left the job stuck).
+    if (onClock && currentJob === "meet" && inGaragePark(player.x, player.y)) {
+      talkMack();
+      return;
+    }
     for (const s of shops) {
       const b = s.b;
       const door = doorOf(b);
@@ -1824,7 +1831,11 @@ export function createGame(
       const b = s.b;
       if (dist(player.x, player.y, b.x + b.w / 2, b.y + b.h + 8) < 42) shopNear = true;
     }
-    if (car) hint = "E / JACK  boost this car";
+    // Find Mack: in Mack's lot (or next to him), ACT talks to him, so say that
+    // before the "boost this car" and garage hints that used to win here.
+    if (onClock && currentJob === "meet" && (nearMack || inGaragePark(player.x, player.y)))
+      hint = "SPACE / ACT  talk to Mack";
+    else if (car) hint = "E / JACK  boost this car";
     else if (radioOffer) hint = "ACT take radio job  ·  R skip";
     else if (nearMack) hint = onClock ? "SPACE / ACT  talk to Mack" : "SPACE / ACT  take Mack's job";
     else if (shopNear) hint = "SPACE / ACT  hit the register";

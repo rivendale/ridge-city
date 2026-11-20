@@ -3,6 +3,12 @@
 All notable changes to Ridge City are listed here, newest first.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## 2026-11-17
+
+### Fixed
+
+- Find Mack no longer opens the garage when you press ACT inside Mack's lot. Mack stands in the lot, but only part of it is within his talk radius, so ACT used to open the garage and leave the job stuck on "meet". Now, while that first job is on the clock, ACT anywhere in the lot talks to Mack, and the hint says "SPACE / ACT  talk to Mack" there (and next to Mack) instead of the garage or "boost this car" hint.
+
 ## 2026-11-13
 
 ### Changed
